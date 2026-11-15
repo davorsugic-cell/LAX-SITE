@@ -85,6 +85,12 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 .gen .row{grid-template-columns:1fr 1fr 1fr;margin:8px 0 0}
 .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;position:sticky;bottom:0;background:var(--bg);padding:14px 0}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:30px;z-index:99;font-size:14px}
+.sw{display:flex;gap:8px;align-items:center;font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:30px;padding:8px 14px}
+.svc{display:grid;grid-template-columns:2fr 2.4fr 90px 100px auto auto auto auto auto;gap:8px;align-items:center;padding:12px 14px}
+.svc .ck{display:flex;gap:5px;align-items:center;font-size:12px;color:var(--muted);white-space:nowrap}
+.svc input{padding:8px 10px;font-size:14px}
+.svc.off{opacity:.55}
+.svc-h{display:grid;grid-template-columns:2fr 2.4fr 90px 100px auto auto auto auto auto;gap:8px;padding:0 14px 6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .dl .card{display:grid;grid-template-columns:2fr 2fr 1fr auto auto auto;gap:10px;align-items:end}
 
 @media (max-width:760px){
@@ -95,6 +101,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
   .vt tr{display:grid;grid-template-columns:44px 1fr 1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
   .vt td{padding:0}
   .dl .card{grid-template-columns:1fr 1fr}
+  .svc{grid-template-columns:1fr 1fr}.svc input[data-k=name],.svc input[data-k=description]{grid-column:1/-1}.svc-h{display:none}
   .hdr .u span{display:none}
 }
 </style>
@@ -124,6 +131,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
     <nav class="tabs" id="tabs">
       <button data-t="orders" class="on">Narudžbe<span class="badge hide" id="newN"></span></button>
       <button data-t="products">Proizvodi</button>
+      <button data-t="services">Cjenovnik</button>
       <button data-t="delivery">Dostava</button>
     </nav>
 
@@ -136,6 +144,17 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
     <section id="t-products" class="hide">
       <div class="bar"><h2>Proizvodi</h2><button class="btn btn-gold" id="newProd">+ Novi proizvod</button></div>
       <div class="plist" id="plist"></div>
+    </section>
+
+    <section id="t-services" class="hide">
+      <div class="bar"><h2>Cjenovnik usluga</h2>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <label class="sw"><input type="checkbox" id="showPrices"> Prikaži cijene na sajtu</label>
+          <select id="svcCat" style="width:auto"></select>
+          <button class="btn btn-gold" id="newSvc">+ Dodaj stavku</button>
+        </div></div>
+      <p style="font-size:13px;color:var(--muted);margin:-4px 0 14px">Kad su cijene isključene (globalno ili za stavku), na sajtu piše "Cijena na upit". "Od" prikazuje cijenu kao "od 30 KM".</p>
+      <div id="svcList"></div>
     </section>
 
     <section id="t-delivery" class="hide">
@@ -199,7 +218,7 @@ async function boot() {
   if (error || !data) { await sb.auth.signOut(); return showLogin('Ovaj nalog nema admin pristup shopu.'); }
   $('#who').textContent = session.user.email;
   $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide');
-  loadOrders(); loadProducts(); loadDelivery();
+  loadOrders(); loadProducts(); loadServices(); loadDelivery();
 }
 function showLogin(msg) { $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); $('#loginMsg').textContent = msg || ''; }
 $('#loginForm').onsubmit = async e => {
@@ -214,7 +233,7 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); showLogin(); };
 $('#tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['orders', 'products', 'delivery'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
+  ['orders', 'products', 'services', 'delivery'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
 };
 
 // ---------- narudžbe ----------
@@ -374,6 +393,66 @@ $('#pDelete').onclick = async () => {
   if (error) return toast('Greška: ' + error.message);
   toast('Obrisano'); $('#ed').classList.add('hide'); loadProducts();
 };
+
+// ---------- cjenovnik ----------
+const SCAT={kosa:'Kosa i nadogradnja',nokti:'Nokti',trepavice:'Trepavice i obrve',trajna:'Trajna šminka',lice:'Tretmani lica',tijelo:'Tretmani tijela',sminkanje:'Šminkanje',edukacije:'Edukacije'};
+$('#svcCat').innerHTML = Object.entries(SCAT).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+let svcs = [];
+async function loadServices() {
+  const [a, b] = await Promise.all([
+    sb.from('lax_services').select('*').order('sort').order('created_at'),
+    sb.from('lax_settings').select('value').eq('key', 'services_show_prices').maybeSingle()]);
+  if (a.error) return $('#svcList').innerHTML = '<div class="card">Greška: ' + esc(a.error.message) + ' (da li je pokrenut cjenovnik.sql?)</div>';
+  svcs = a.data; $('#showPrices').checked = !b.data || b.data.value !== false; drawServices();
+}
+function drawServices() {
+  const cat = $('#svcCat').value, list = svcs.map((x, i) => ({x, i})).filter(o => o.x.category === cat);
+  $('#svcList').innerHTML = (list.length ? '<div class="svc-h"><span>Naziv</span><span>Opis</span><span>Min</span><span>Cijena KM</span><span>Od</span><span>Cijena</span><span>Aktivna</span><span></span><span></span></div>' : '') +
+    (list.map(({x, i}) => `<div class="card svc ${x.active ? '' : 'off'}">
+      <input data-s="${i}" data-k="name" value="${esc(x.name)}" placeholder="Naziv tretmana">
+      <input data-s="${i}" data-k="description" value="${esc(x.description || '')}" placeholder="Opis (opcionalno)">
+      <input data-s="${i}" data-k="duration_min" type="number" value="${x.duration_min ?? ''}" placeholder="min">
+      <input data-s="${i}" data-k="price" type="number" step="0.01" value="${x.price ?? ''}" placeholder="KM">
+      <label class="ck"><input type="checkbox" data-s="${i}" data-k="price_from" ${x.price_from ? 'checked' : ''}>od</label>
+      <label class="ck"><input type="checkbox" data-s="${i}" data-k="show_price" ${x.show_price ? 'checked' : ''}>prikaži</label>
+      <label class="ck"><input type="checkbox" data-s="${i}" data-k="active" ${x.active ? 'checked' : ''}>aktivna</label>
+      <button class="btn btn-gold" data-ss="${i}" style="padding:8px 14px">Sačuvaj</button>
+      <button class="btn btn-red" data-sx="${i}" style="padding:8px 12px">×</button></div>`).join('') ||
+     '<div class="card" style="text-align:center;color:var(--muted)">Nema stavki za ovu uslugu. Klikni "+ Dodaj stavku".</div>');
+}
+$('#svcCat').onchange = drawServices;
+$('#showPrices').onchange = async e => {
+  const {error} = await sb.from('lax_settings').upsert({key: 'services_show_prices', value: e.target.checked});
+  toast(error ? 'Greška: ' + error.message : e.target.checked ? 'Cijene se prikazuju na sajtu' : 'Cijene su sakrivene (na upit)');
+};
+$('#newSvc').onclick = () => {
+  const cat = $('#svcCat').value, n = svcs.filter(x => x.category === cat).length;
+  svcs.push({category: cat, name: '', description: '', duration_min: null, price: null, price_from: false, show_price: true, active: true, sort: n}); drawServices();
+  const ins = document.querySelectorAll('#svcList input[data-k=name]'); ins[ins.length - 1]?.focus();
+};
+$('#svcList').addEventListener('input', e => {
+  const t = e.target; if (t.dataset.s == null) return; const x = svcs[+t.dataset.s], k = t.dataset.k;
+  if (t.type === 'checkbox') x[k] = t.checked;
+  else if (k === 'duration_min') x[k] = t.value === '' ? null : parseInt(t.value);
+  else if (k === 'price') x[k] = t.value === '' ? null : parseFloat(t.value);
+  else x[k] = t.value;
+});
+$('#svcList').addEventListener('click', async e => {
+  const sv = e.target.closest('[data-ss]'), dx = e.target.closest('[data-sx]');
+  if (sv) {
+    const x = svcs[+sv.dataset.ss]; if (!x.name.trim()) return toast('Upiši naziv');
+    const r = {category: x.category, name: x.name.trim(), description: (x.description || '').trim() || null, duration_min: x.duration_min, price: x.price, price_from: x.price_from, show_price: x.show_price, active: x.active, sort: x.sort ?? 0};
+    const res = x.id ? await sb.from('lax_services').update(r).eq('id', x.id).select().single() : await sb.from('lax_services').insert(r).select().single();
+    if (res.error) return toast('Greška: ' + res.error.message);
+    svcs[+sv.dataset.ss] = res.data; drawServices(); toast('Sačuvano');
+  }
+  if (dx) {
+    const i = +dx.dataset.sx, x = svcs[i];
+    if (!dx.dataset.sure) { dx.dataset.sure = 1; dx.textContent = 'Obriši?'; setTimeout(() => { delete dx.dataset.sure; dx.textContent = '×'; }, 3000); return; }
+    if (x.id) { const {error} = await sb.from('lax_services').delete().eq('id', x.id); if (error) return toast('Greška: ' + error.message); }
+    svcs.splice(i, 1); drawServices(); toast('Obrisano');
+  }
+});
 
 // ---------- dostava ----------
 let dels = [];
