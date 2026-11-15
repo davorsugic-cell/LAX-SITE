@@ -171,8 +171,6 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;text-align:center;fo
   </div>
   <div class="tabs" id="tabs">
     <button data-c="" class="on">Sve</button>
-    <button data-c="kosa">Kosa</button>
-    <button data-c="preparati">Preparati</button>
   </div>
   <div class="grid" id="grid"><div class="empty">Učitavanje…</div></div>
 </main>
@@ -214,26 +212,37 @@ const km = n => Number(n).toLocaleString('bs-BA', {minimumFractionDigits: Number
 const COLORS = {plava:'#e6cf9a', crna:'#1e1a18', smeđa:'#6b4a2e', smeda:'#6b4a2e', 'svijetlo smeđa':'#9a7350', bijela:'#f4f1ea', ombre:'linear-gradient(135deg,#6b4a2e,#e6cf9a)'};
 const LOGO = '<img class="logo" src="/logo.png" alt="">';
 
-let products = [], deliveries = [], cat = '';
+let products = [], deliveries = [], cats = [], CATN = {}, cat = '';
 let cart = [];
 try { cart = JSON.parse(localStorage.getItem('lax_cart') || '[]'); } catch (e) { cart = []; }
 const saveCart = () => { try { localStorage.setItem('lax_cart', JSON.stringify(cart)); } catch (e) {} ; $('#cartN').textContent = cart.reduce((a, i) => a + i.qty, 0); };
 
 async function load() {
   if (!sb) { $('#grid').innerHTML = '<div class="notice">Shop još nije povezan s bazom (config.js).</div>'; return; }
-  const [p, d] = await Promise.all([
+  const [p, d, c] = await Promise.all([
     sb.from('lax_products').select('*, lax_variants(*)').eq('active', true).order('sort').order('created_at'),
-    sb.from('lax_delivery').select('*').eq('active', true).order('sort')
+    sb.from('lax_delivery').select('*').eq('active', true).order('sort'),
+    sb.from('lax_categories').select('*').eq('active', true).order('sort')
   ]);
   if (p.error) { $('#grid').innerHTML = '<div class="notice">Greška pri učitavanju proizvoda.</div>'; console.error(p.error); return; }
   products = (p.data || []).map(x => ({...x, v: (x.lax_variants || []).filter(v => v.active).sort((a, b) => a.sort - b.sort || (a.length_cm||0) - (b.length_cm||0))})).filter(x => x.v.length);
   deliveries = d.data || [];
+  cats = c.data || []; CATN = Object.fromEntries(cats.map(x => [x.slug, x.name]));
+  drawTabs();
   // osvježi cijene u korpi i izbaci nedostupno
   const vmap = {}; products.forEach(pr => pr.v.forEach(v => vmap[v.id] = {v, pr}));
   cart = cart.filter(i => vmap[i.id]).map(i => ({...i, price: vmap[i.id].v.price}));
   saveCart(); render();
 }
 
+function drawTabs() {
+  const used = new Set(products.map(p => p.category));
+  const list = cats.filter(x => used.has(x.slug));
+  if (cat && !used.has(cat)) cat = '';
+  $('#tabs').innerHTML = `<button data-c="" class="${cat ? '' : 'on'}">Sve</button>` +
+    list.map(x => `<button data-c="${esc(x.slug)}" class="${cat === x.slug ? 'on' : ''}">${esc(x.name)}</button>`).join('');
+  $('#tabs').style.display = list.length > 1 ? '' : 'none';
+}
 function render() {
   const list = products.filter(p => !cat || p.category === cat);
   if (!list.length) { $('#grid').innerHTML = '<div class="empty">Uskoro novi proizvodi u ovoj kategoriji.</div>'; return; }
@@ -244,7 +253,7 @@ function render() {
     const img = p.image_url || (p.v.find(v => v.image_url) || {}).image_url;
     return `<button class="pc" data-id="${p.id}">
       <div class="ph">${img ? `<img src="${esc(img)}" alt="${esc(p.name)}" loading="lazy">` : LOGO}</div>
-      <div class="b"><div class="cat">${esc(p.category)}</div><h3>${esc(p.name)}</h3>
+      <div class="b"><div class="cat">${esc(CATN[p.category] || p.category)}</div><h3>${esc(p.name)}</h3>
       <div class="opts">${esc(opts)}</div><div class="pr">${min === max ? km(min) : 'od ' + km(min)}</div></div></button>`;
   }).join('');
 }
@@ -258,7 +267,7 @@ function openProduct(id) {
   const labels = [...new Set(cur.v.map(v => v.label).filter(Boolean))];
   const first = cur.v.find(v => v.stock == null || v.stock > 0) || cur.v[0];
   sel = {len: first.length_cm, col: first.color, lab: first.label}; qty = 1;
-  $('#mCat').textContent = cur.category; $('#mName').textContent = cur.name; $('#mDesc').textContent = cur.description || '';
+  $('#mCat').textContent = CATN[cur.category] || cur.category; $('#mName').textContent = cur.name; $('#mDesc').textContent = cur.description || '';
   let h = '';
   if (lens.length) h += `<div class="optlbl">Dužina</div><div class="chips" data-k="len">${lens.map(l => `<button class="chip" data-v="${l}">${l} cm</button>`).join('')}</div>`;
   if (cols.length) h += `<div class="optlbl">Nijansa</div><div class="chips" data-k="col">${cols.map(c => `<button class="chip" data-v="${esc(c)}"><span class="dot" style="background:${COLORS[c.toLowerCase()] || '#ccc'}"></span>${esc(c)}</button>`).join('')}</div>`;
