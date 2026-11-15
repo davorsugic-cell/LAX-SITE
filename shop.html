@@ -344,10 +344,11 @@ async function sendOrder(btn) {
   btn.disabled = true; btn.textContent = 'Šaljem…';
   const {data, error} = await sb.rpc('lax_place_order', {p_name: g('name'), p_phone: g('phone'), p_email: g('email'), p_address: g('address'), p_city: g('city'), p_note: g('note'), p_delivery: d.id, p_items: cart.map(i => ({variant_id: i.id, qty: i.qty}))});
   if (error) { btn.disabled = false; btn.textContent = 'Naruči'; return err(error.message || 'Narudžba nije poslana. Pokušajte ponovo ili nas pozovite.'); }
+  sb.functions.invoke('lax-order-email', {body: {order_no: data.order_no}}).catch(() => {});
   cart = []; saveCart(); step = 'done';
   $('#dTitle').textContent = 'Hvala!';
   $('#dBody').innerHTML = `<div class="ok"><div class="ic"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 5 5 9-10"/></svg></div>
-    <h4>Narudžba #${esc(data.order_no)} je primljena</h4><p>Ukupno ${km(data.total)}. Javićemo vam se uskoro na telefon ili Viber radi potvrde.</p></div>`;
+    <h4>Narudžba #${esc(data.order_no)} je primljena</h4><p>Ukupno ${km(data.total)}. Javićemo vam se uskoro na telefon ili Viber radi potvrde.${g('email') ? ' Potvrdu smo poslali i na ' + esc(g('email')) + '.' : ''}</p></div>`;
   $('#dFoot').innerHTML = '<button class="btn btn-line" style="width:100%" data-close>Zatvori</button>';
   load();
 }
