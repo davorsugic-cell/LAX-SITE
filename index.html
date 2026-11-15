@@ -237,6 +237,26 @@ h2{font-family:var(--serif);font-weight:400;font-size:clamp(38px,4.6vw,56px);lin
   nav.main a.cta{padding:15px 28px;font-size:14px;margin-left:10px;box-shadow:0 8px 20px rgba(138,102,48,.3)}
   .ddp{top:calc(100% + 26px)}
 }
+
+/* TAMNE KARTICE USLUGA */
+#usluge .svc{background:var(--ink);border:1px solid var(--ink);color:#f3ebe1;box-shadow:0 14px 34px rgba(43,36,32,.18)}
+#usluge .svc::after{background:radial-gradient(circle,rgba(201,164,103,.38),transparent 70%)}
+#usluge .svc:hover{border-color:var(--gold2);box-shadow:0 22px 46px rgba(43,36,32,.28)}
+#usluge .svc h3{color:#fff}
+#usluge .svc p{color:#cbbdad}
+#usluge .ico{background:linear-gradient(135deg,#d8b878,#a8803f);color:var(--ink)}
+#usluge .svc .cj{color:#e2c48e}
+#usluge .arrow{background:var(--gold2);color:var(--ink);box-shadow:none}
+#usluge .svc:hover .arrow{background:#fff;color:var(--ink)}
+.svc .num{position:absolute;right:24px;top:20px;font-family:var(--serif);font-size:40px;line-height:1;color:rgba(201,164,103,.32);pointer-events:none}
+/* TAMNA KARTICA EDUKACIJE */
+.edu{background:var(--ink);border-color:var(--ink);color:#f3ebe1;position:relative;overflow:hidden;box-shadow:0 18px 44px rgba(43,36,32,.2)}
+.edu::after{content:"";position:absolute;right:-90px;top:-90px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(201,164,103,.35),transparent 70%);pointer-events:none}
+.edu>*{position:relative;z-index:1}
+.edu .ico{background:linear-gradient(135deg,#d8b878,#a8803f);color:var(--ink)}
+.edu h2{color:#fff}
+.edu .eyebrow{color:#e2c48e}
+.edu p{color:#cbbdad}
 footer{border-top:1px solid var(--line);padding:30px 0 40px;text-align:center;font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
 footer .made{display:block;margin-top:10px;font-size:10.5px;letter-spacing:.2em;opacity:.7}
 
@@ -289,6 +309,7 @@ footer .made{display:block;margin-top:10px;font-size:10.5px;letter-spacing:.2em;
   .svc .ico{width:50px;height:50px}.svc .ico svg{width:26px;height:26px}
   .svc h3{font-size:21px}
   .svc p{font-size:13px;line-height:1.45}
+  .svc .num{font-size:26px;right:14px;top:14px}
   .arrow{display:none}
   .hair{padding:36px 22px;border-radius:22px}
   .hair-item{padding:18px}
@@ -371,41 +392,49 @@ footer .made{display:block;margin-top:10px;font-size:10.5px;letter-spacing:.2em;
     </div>
     <div class="grid">
       <a href="/nadogradnja-kose" class="svc reveal" data-cat="kosa">
+        <span class="num" aria-hidden="true">01</span>
         <div class="ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="9" cy="24" r="3.5"/><circle cx="23" cy="24" r="3.5"/><path d="M11.5 21.5 24 5M20.5 21.5 8 5"/></svg></div>
         <h3>Kosa i nadogradnja</h3><p>Frizure, feniranje i nadogradnja ruske kose.</p>
         <span class="cj">Cjenovnik</span><span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></span>
       </a>
       <a href="/nokti" class="svc reveal" data-cat="nokti">
+        <span class="num" aria-hidden="true">02</span>
         <div class="ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 29V19c-2-1-3-3-3-5V8a3 3 0 0 1 6 0v8"/><path d="M15 12a2.5 2.5 0 0 1 5 0v6M20 14a2.5 2.5 0 0 1 5 0v6c0 5-3 9-8 9"/><rect x="10.5" y="4.5" width="3" height="4" rx="1.5"/></svg></div>
         <h3>Nokti</h3><p>Manikir, gel, nadogradnja noktiju i pedikir.</p>
         <span class="cj">Cjenovnik</span><span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></span>
       </a>
       <a href="/trepavice-i-obrve" class="svc reveal" data-cat="trepavice">
+        <span class="num" aria-hidden="true">03</span>
         <div class="ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M3 17c4-6 9-8 13-8s9 2 13 8"/><path d="M3 17c4 4 9 6 13 6s9-2 13-6"/><circle cx="16" cy="16" r="4"/><path d="M8 22l-2 3M12 24l-1 3M20 24l1 3M24 22l2 3M6 8c4-3 9-3 13-1"/></svg></div>
         <h3>Trepavice i obrve</h3><p>Ekstenzije, lash lift, brow lift i oblikovanje obrva.</p>
         <span class="cj">Cjenovnik</span><span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></span>
       </a>
       <a href="/trajna-sminka" class="svc reveal" data-cat="trajna">
+        <span class="num" aria-hidden="true">04</span>
         <div class="ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16c3-3 6-5 9-4 1 .3 2 1 3 1s2-.7 3-1c3-1 6 1 9 4-3 4-7 6-12 6S7 20 4 16z"/><path d="M4 16h24"/></svg></div>
         <h3>Trajna šminka</h3><p>Obrve, usne i eyeliner. Prirodan izgled koji traje.</p>
         <span class="cj">Cjenovnik</span><span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></span>
       </a>
       <a href="/tretmani-lica" class="svc reveal" data-cat="lice">
+        <span class="num" aria-hidden="true">05</span>
         <div class="ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3c-6 0-10 4-10 10 0 2-2 4-3 6l3 1v4c0 2 1 3 3 3h3v3"/><path d="M17 9c2 1 3 3 3 5"/></svg></div>
         <h3>Tretmani lica</h3><p>Čišćenje, njega i tretmani za blistavu kožu.</p>
         <span class="cj">Cjenovnik</span><span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></span>
       </a>
       <a href="/tretmani-tijela" class="svc reveal" data-cat="tijelo">
+        <span class="num" aria-hidden="true">06</span>
         <div class="ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 26c-4-3-5-8-3-13 1-2 2-3 3-4 1 1 2 2 3 4 2 5 1 10-3 13z"/><path d="M13 24c-4 0-8-3-9-8 3-1 6 0 8 1M19 24c4 0 8-3 9-8-3-1-6 0-8 1"/><path d="M6 26h20"/></svg></div>
         <h3>Tretmani tijela</h3><p>Opuštanje i njega tijela uz profesionalne tretmane.</p>
         <span class="cj">Cjenovnik</span><span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></span>
       </a>
       <a href="/sminkanje" class="svc reveal" data-cat="sminkanje">
+        <span class="num" aria-hidden="true">07</span>
         <div class="ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3c3 0 5 2 5 5 0 2-2 4-5 5l-3-7c1-2 2-3 3-3z"/><path d="M19 6l3 7-11 15-3-1z"/></svg></div>
         <h3>Šminkanje</h3><p>Dnevna, večernja i svečana šminka za vaš poseban dan.</p>
         <span class="cj">Cjenovnik</span><span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></span>
       </a>
       <a href="/edukacije" class="svc reveal" data-cat="edukacije">
+        <span class="num" aria-hidden="true">08</span>
         <div class="ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12 16 6l14 6-14 6z"/><path d="M8 15v7c4 3 12 3 16 0v-7M30 12v8"/></svg></div>
         <h3>Edukacije</h3><p>Stručne obuke za buduće profesionalke u ljepoti.</p>
         <span class="cj">Cjenovnik</span><span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></span>
