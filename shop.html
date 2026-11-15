@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop — LAX Studio</title>
+<meta name="description" content="LAX Studio shop — ruska kosa i preparati za kosu. Dostava u BiH, plaćanje pouzećem ili preuzimanje u salonu u Banjoj Luci.">
+<meta name="theme-color" content="#f7f1ea">
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f7f1ea;--bg2:#efe5d9;--card:#fbf7f2;--line:#e4d6c5;--ink:#2b2420;--muted:#7a6c60;--gold:#a8803f;--gold2:#c9a467;--gold-dk:#8a6630;--red:#a8423f;--serif:'Cormorant Garamond',Georgia,serif;--sans:'Jost',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:300;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+header{position:sticky;top:0;z-index:40;background:rgba(247,241,234,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hdr{display:flex;align-items:center;justify-content:space-between;height:74px;gap:16px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{width:48px;height:48px;border-radius:50%;box-shadow:0 4px 14px rgba(138,102,48,.18)}
+.brand b{display:block;font-family:var(--serif);font-weight:500;font-size:26px;line-height:1}
+.brand small{display:block;font-size:10px;letter-spacing:.32em;color:var(--muted);margin-top:5px;text-transform:uppercase}
+.hnav{display:flex;align-items:center;gap:22px}
+.hnav a.lnk{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.cartbtn{position:relative;display:flex;align-items:center;gap:10px;padding:11px 20px;border-radius:40px;border:0;background:var(--gold);color:#fff;font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+.cartbtn svg{width:18px;height:18px}
+.cartbtn .n{min-width:22px;height:22px;border-radius:11px;background:#fff;color:var(--gold-dk);font-size:12px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px;font-weight:500}
+
+.hero{padding:54px 0 26px}
+.eyebrow{font-size:12px;letter-spacing:.36em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,6vw,72px);line-height:1}
+h1 em{font-style:italic;color:var(--gold-dk)}
+.hero p{color:var(--muted);max-width:560px;margin-top:16px;font-size:17px}
+.perks{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.perks span{font-size:13px;padding:8px 16px;border:1px solid var(--line);border-radius:30px;background:var(--card);color:var(--muted)}
+
+.tabs{display:flex;gap:8px;margin:26px 0 22px;flex-wrap:wrap}
+.tabs button{padding:10px 22px;border-radius:30px;border:1px solid var(--line);background:transparent;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;padding-bottom:80px}
+.pc{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;cursor:pointer;transition:.25s;display:flex;flex-direction:column;text-align:left;padding:0}
+.pc:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(90,64,30,.12);border-color:var(--gold2)}
+.ph{aspect-ratio:1/1;background:radial-gradient(circle at 50% 40%,#fffaf3,#f0e2cf 70%,#e6d2b8);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover}
+.ph img.logo{width:42%;height:auto;border-radius:50%;opacity:.85;object-fit:contain}
+.pc .b{padding:18px 20px 20px}
+.pc .cat{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+.pc h3{font-family:var(--serif);font-weight:500;font-size:26px;line-height:1.1;margin:6px 0 4px}
+.pc .opts{font-size:13px;color:var(--muted)}
+.pc .pr{margin-top:12px;font-family:var(--serif);font-size:24px;color:var(--gold-dk)}
+
+.empty,.notice{padding:40px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:18px;grid-column:1/-1}
+
+/* overlays */
+.ov{position:fixed;inset:0;background:rgba(43,36,32,.45);z-index:80;display:none}
+.ov.on{display:block}
+.modal{position:fixed;z-index:90;left:50%;top:50%;transform:translate(-50%,-50%);width:min(920px,94vw);max-height:92vh;overflow:auto;background:var(--bg);border-radius:22px;display:none;grid-template-columns:1fr 1fr}
+.modal.on{display:grid}
+.modal .ph{aspect-ratio:auto;min-height:100%}
+.mbody{padding:34px 32px 30px;position:relative}
+.x{position:absolute;right:14px;top:14px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:20px;line-height:1}
+.mbody h2{font-family:var(--serif);font-weight:500;font-size:38px;line-height:1.05;margin:6px 0 10px}
+.mbody .desc{color:var(--muted);font-size:15px}
+.optlbl{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:10px 18px;border-radius:30px;border:1px solid var(--line);background:var(--card);font-size:14px;display:inline-flex;align-items:center;gap:8px}
+.chip.on{border-color:var(--gold);background:#fff;box-shadow:0 0 0 1px var(--gold) inset;color:var(--gold-dk)}
+.chip:disabled{opacity:.35;cursor:not-allowed;text-decoration:line-through}
+.dot{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.mprice{font-family:var(--serif);font-size:36px;color:var(--gold-dk);margin-top:24px}
+.stockinfo{font-size:13px;color:var(--muted)}
+.qtyrow{display:flex;gap:12px;margin-top:18px;align-items:center}
+.qty{display:flex;align-items:center;border:1px solid var(--line);border-radius:30px;background:var(--card)}
+.qty button{width:42px;height:46px;border:0;background:transparent;font-size:20px}
+.qty span{min-width:28px;text-align:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:15px 28px;border-radius:50px;border:0;font-size:13px;letter-spacing:.18em;text-transform:uppercase;transition:.2s}
+.btn-gold{background:linear-gradient(135deg,var(--gold2),var(--gold) 45%,var(--gold-dk));color:#fff;box-shadow:0 10px 24px rgba(138,102,48,.25)}
+.btn-gold:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.btn-line{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.grow{flex:1}
+
+.drawer{position:fixed;z-index:90;top:0;right:0;height:100%;width:min(460px,100vw);background:var(--bg);transform:translateX(105%);transition:transform .35s ease;display:flex;flex-direction:column;box-shadow:-20px 0 50px rgba(0,0,0,.15)}
+.drawer.on{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:22px 24px;border-bottom:1px solid var(--line)}
+.dh h3{font-family:var(--serif);font-weight:500;font-size:30px}
+.dh .x{position:static}
+.db{flex:1;overflow:auto;padding:18px 24px}
+.df{padding:18px 24px 24px;border-top:1px solid var(--line);background:var(--card)}
+.ci{display:grid;grid-template-columns:64px 1fr auto;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);align-items:center}
+.ci .th{width:64px;height:64px;border-radius:12px;overflow:hidden;background:var(--bg2);display:flex;align-items:center;justify-content:center}
+.ci .th img{width:100%;height:100%;object-fit:cover}
+.ci b{font-weight:400;display:block}
+.ci small{color:var(--muted);font-size:13px}
+.ci .qty button{width:32px;height:32px;font-size:16px}
+.ci .rm{border:0;background:none;color:var(--muted);font-size:12px;text-decoration:underline;margin-top:4px}
+.ci .lp{font-family:var(--serif);font-size:20px;text-align:right}
+.sum{display:flex;justify-content:space-between;margin:6px 0;font-size:15px}
+.sum.tot{font-family:var(--serif);font-size:26px;margin-top:10px}
+form .f{margin-bottom:12px}
+form label{display:block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+form input,form textarea{width:100%;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:15px}
+form input:focus,form textarea:focus{outline:2px solid var(--gold2);border-color:transparent}
+.dl{display:grid;gap:8px}
+.dl label.opt{display:flex;gap:12px;align-items:flex-start;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:#fff;text-transform:none;letter-spacing:0;font-size:15px;color:var(--ink);cursor:pointer;margin:0}
+.dl label.opt:has(input:checked){border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.dl input{width:auto;margin-top:4px;accent-color:var(--gold)}
+.dl small{display:block;color:var(--muted);font-size:13px}
+.dl .p{margin-left:auto;font-family:var(--serif);font-size:19px;white-space:nowrap}
+.pay{font-size:14px;color:var(--muted);padding:12px 15px;background:var(--bg2);border-radius:12px}
+.err{color:var(--red);font-size:14px;margin-top:10px}
+.ok{text-align:center;padding:40px 10px}
+.ok .ic{width:76px;height:76px;margin:0 auto 18px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center}
+.ok h4{font-family:var(--serif);font-weight:500;font-size:32px}
+.ok p{color:var(--muted);margin-top:10px}
+
+footer{border-top:1px solid var(--line);padding:30px 0 40px;text-align:center;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted)}
+
+@media (max-width:760px){
+  .hnav a.lnk{display:none}
+  .brand b{font-size:22px}.brand small{display:none}
+  .cartbtn{padding:10px 16px}
+  .modal{grid-template-columns:1fr;top:auto;bottom:0;left:0;transform:none;width:100%;max-height:94vh;border-radius:22px 22px 0 0}
+  .modal .ph{aspect-ratio:4/3;min-height:0}
+  .mbody{padding:26px 20px 26px}
+  .grid{grid-template-columns:1fr 1fr;gap:12px}
+  .pc .b{padding:12px 14px 14px}
+  .pc h3{font-size:20px}
+  .pc .pr{font-size:19px;margin-top:6px}
+  .pc .opts{font-size:12px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap hdr">
+    <a href="/" class="brand"><img src="/logo.png" alt="LAX Studio"><span><b>LAX Studio</b><small>Shop</small></span></a>
+    <div class="hnav">
+      <a href="/" class="lnk">Početna</a>
+      <a href="/#kontakt" class="lnk">Kontakt</a>
+      <button class="cartbtn" id="openCart" aria-label="Korpa">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 7h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/></svg>
+        Korpa <span class="n" id="cartN">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="eyebrow">LAX Shop</div>
+    <h1>Ruska kosa <em>i preparati</em></h1>
+    <p>Odaberite dužinu i nijansu, dodajte u korpu i naručite. Plaćanje pouzećem ili preuzimanje u salonu u Banjoj Luci.</p>
+    <div class="perks"><span>Plaćanje pouzećem</span><span>Brza pošta za cijelu BiH</span><span>Preuzimanje u salonu</span></div>
+  </div>
+  <div class="tabs" id="tabs">
+    <button data-c="" class="on">Sve</button>
+    <button data-c="kosa">Kosa</button>
+    <button data-c="preparati">Preparati</button>
+  </div>
+  <div class="grid" id="grid"><div class="empty">Učitavanje…</div></div>
+</main>
+
+<footer>LAX Studio · Salon ljepote · Banja Luka</footer>
+
+<div class="ov" id="ov"></div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="ph" id="mImg"></div>
+  <div class="mbody">
+    <button class="x" data-close>×</button>
+    <div class="eyebrow" id="mCat"></div>
+    <h2 id="mName"></h2>
+    <p class="desc" id="mDesc"></p>
+    <div id="mOpts"></div>
+    <div class="mprice" id="mPrice"></div>
+    <div class="stockinfo" id="mStock"></div>
+    <div class="qtyrow">
+      <div class="qty"><button id="qm">−</button><span id="qv">1</span><button id="qp">+</button></div>
+      <button class="btn btn-gold grow" id="addBtn">Dodaj u korpu</button>
+    </div>
+  </div>
+</div>
+
+<aside class="drawer" id="drawer" aria-label="Korpa">
+  <div class="dh"><h3 id="dTitle">Korpa</h3><button class="x" data-close>×</button></div>
+  <div class="db" id="dBody"></div>
+  <div class="df" id="dFoot"></div>
+</aside>
+
+<script>
+const C = window.LAX_CONFIG || {};
+const configured = C.SUPABASE_URL && !C.SUPABASE_URL.includes('VAS-PROJEKAT') && C.SUPABASE_ANON_KEY && !C.SUPABASE_ANON_KEY.includes('OVDJE');
+const sb = configured ? supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY) : null;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const km = n => Number(n).toLocaleString('bs-BA', {minimumFractionDigits: Number(n) % 1 ? 2 : 0, maximumFractionDigits: 2}) + ' KM';
+const COLORS = {plava:'#e6cf9a', crna:'#1e1a18', smeđa:'#6b4a2e', smeda:'#6b4a2e', 'svijetlo smeđa':'#9a7350', bijela:'#f4f1ea', ombre:'linear-gradient(135deg,#6b4a2e,#e6cf9a)'};
+const LOGO = '<img class="logo" src="/logo.png" alt="">';
+
+let products = [], deliveries = [], cat = '';
+let cart = [];
+try { cart = JSON.parse(localStorage.getItem('lax_cart') || '[]'); } catch (e) { cart = []; }
+const saveCart = () => { try { localStorage.setItem('lax_cart', JSON.stringify(cart)); } catch (e) {} ; $('#cartN').textContent = cart.reduce((a, i) => a + i.qty, 0); };
+
+async function load() {
+  if (!sb) { $('#grid').innerHTML = '<div class="notice">Shop još nije povezan s bazom (config.js).</div>'; return; }
+  const [p, d] = await Promise.all([
+    sb.from('lax_products').select('*, lax_variants(*)').eq('active', true).order('sort').order('created_at'),
+    sb.from('lax_delivery').select('*').eq('active', true).order('sort')
+  ]);
+  if (p.error) { $('#grid').innerHTML = '<div class="notice">Greška pri učitavanju proizvoda.</div>'; console.error(p.error); return; }
+  products = (p.data || []).map(x => ({...x, v: (x.lax_variants || []).filter(v => v.active).sort((a, b) => a.sort - b.sort || (a.length_cm||0) - (b.length_cm||0))})).filter(x => x.v.length);
+  deliveries = d.data || [];
+  // osvježi cijene u korpi i izbaci nedostupno
+  const vmap = {}; products.forEach(pr => pr.v.forEach(v => vmap[v.id] = {v, pr}));
+  cart = cart.filter(i => vmap[i.id]).map(i => ({...i, price: vmap[i.id].v.price}));
+  saveCart(); render();
+}
+
+function render() {
+  const list = products.filter(p => !cat || p.category === cat);
+  if (!list.length) { $('#grid').innerHTML = '<div class="empty">Uskoro novi proizvodi u ovoj kategoriji.</div>'; return; }
+  $('#grid').innerHTML = list.map(p => {
+    const min = Math.min(...p.v.map(v => +v.price)), max = Math.max(...p.v.map(v => +v.price));
+    const lens = [...new Set(p.v.map(v => v.length_cm).filter(Boolean))], cols = [...new Set(p.v.map(v => v.color).filter(Boolean))];
+    const opts = [lens.length ? lens.join(' / ') + ' cm' : '', cols.length ? cols.length + (cols.length === 1 ? ' nijansa' : ' nijanse') : ''].filter(Boolean).join(' · ');
+    const img = p.image_url || (p.v.find(v => v.image_url) || {}).image_url;
+    return `<button class="pc" data-id="${p.id}">
+      <div class="ph">${img ? `<img src="${esc(img)}" alt="${esc(p.name)}" loading="lazy">` : LOGO}</div>
+      <div class="b"><div class="cat">${esc(p.category)}</div><h3>${esc(p.name)}</h3>
+      <div class="opts">${esc(opts)}</div><div class="pr">${min === max ? km(min) : 'od ' + km(min)}</div></div></button>`;
+  }).join('');
+}
+
+// ---------- detalj proizvoda ----------
+let cur = null, sel = {}, qty = 1;
+function openProduct(id) {
+  cur = products.find(p => p.id === id); if (!cur) return;
+  const lens = [...new Set(cur.v.map(v => v.length_cm).filter(x => x != null))];
+  const cols = [...new Set(cur.v.map(v => v.color).filter(Boolean))];
+  const labels = [...new Set(cur.v.map(v => v.label).filter(Boolean))];
+  const first = cur.v.find(v => v.stock == null || v.stock > 0) || cur.v[0];
+  sel = {len: first.length_cm, col: first.color, lab: first.label}; qty = 1;
+  $('#mCat').textContent = cur.category; $('#mName').textContent = cur.name; $('#mDesc').textContent = cur.description || '';
+  let h = '';
+  if (lens.length) h += `<div class="optlbl">Dužina</div><div class="chips" data-k="len">${lens.map(l => `<button class="chip" data-v="${l}">${l} cm</button>`).join('')}</div>`;
+  if (cols.length) h += `<div class="optlbl">Nijansa</div><div class="chips" data-k="col">${cols.map(c => `<button class="chip" data-v="${esc(c)}"><span class="dot" style="background:${COLORS[c.toLowerCase()] || '#ccc'}"></span>${esc(c)}</button>`).join('')}</div>`;
+  if (labels.length) h += `<div class="optlbl">Varijanta</div><div class="chips" data-k="lab">${labels.map(c => `<button class="chip" data-v="${esc(c)}">${esc(c)}</button>`).join('')}</div>`;
+  $('#mOpts').innerHTML = h; updateSel(); open('#modal');
+}
+function curVariant() {
+  return cur.v.find(v => (v.length_cm ?? null) == (sel.len ?? null) && (v.color || null) === (sel.col || null) && (v.label || null) === (sel.lab || null));
+}
+function updateSel() {
+  document.querySelectorAll('#mOpts .chips').forEach(g => {
+    const k = g.dataset.k;
+    g.querySelectorAll('.chip').forEach(b => {
+      const val = k === 'len' ? +b.dataset.v : b.dataset.v;
+      b.classList.toggle('on', String(sel[k]) === String(val));
+      const t = {...sel, [k]: val};
+      const ex = cur.v.find(v => (v.length_cm ?? null) == (t.len ?? null) && (v.color || null) === (t.col || null) && (v.label || null) === (t.lab || null));
+      b.disabled = !ex || (ex.stock != null && ex.stock <= 0);
+    });
+  });
+  const v = curVariant();
+  const img = (v && v.image_url) || cur.image_url;
+  $('#mImg').innerHTML = img ? `<img src="${esc(img)}" alt="">` : LOGO;
+  $('#mPrice').textContent = v ? km(v.price) : '—';
+  $('#mStock').textContent = !v ? 'Ova kombinacija nije dostupna' : v.stock == null ? '' : v.stock > 0 ? `Na stanju: ${v.stock}` : 'Trenutno nema na stanju';
+  $('#qv').textContent = qty;
+  $('#addBtn').disabled = !v || (v.stock != null && v.stock <= 0);
+}
+$('#mOpts').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  const k = b.parentElement.dataset.k; sel[k] = k === 'len' ? +b.dataset.v : b.dataset.v;
+  // ako kombinacija ne postoji, uzmi prvu koja ima izabrano
+  if (!curVariant()) { const alt = cur.v.find(v => (k === 'len' ? v.length_cm === sel.len : k === 'col' ? v.color === sel.col : v.label === sel.lab)); if (alt) sel = {len: alt.length_cm, col: alt.color, lab: alt.label}; }
+  updateSel();
+});
+$('#qm').onclick = () => { qty = Math.max(1, qty - 1); updateSel(); };
+$('#qp').onclick = () => { const v = curVariant(); qty = Math.min(v && v.stock != null ? v.stock : 99, qty + 1); updateSel(); };
+$('#addBtn').onclick = () => {
+  const v = curVariant(); if (!v) return;
+  const ex = cart.find(i => i.id === v.id);
+  if (ex) ex.qty = Math.min(99, ex.qty + qty);
+  else cart.push({id: v.id, qty, price: v.price, name: cur.name,
+    variant: [v.length_cm ? v.length_cm + ' cm' : '', v.color, v.label].filter(Boolean).join(' · '),
+    img: v.image_url || cur.image_url || ''});
+  saveCart(); closeAll(); openCart();
+};
+
+// ---------- korpa i narudžba ----------
+let step = 'cart';
+function openCart() { step = 'cart'; drawCart(); open('#drawer'); }
+function drawCart() {
+  $('#dTitle').textContent = step === 'done' ? 'Hvala!' : step === 'checkout' ? 'Narudžba' : 'Korpa';
+  const sub = cart.reduce((a, i) => a + i.price * i.qty, 0);
+  if (step === 'cart') {
+    if (!cart.length) { $('#dBody').innerHTML = '<div class="empty" style="margin-top:20px">Korpa je prazna.</div>'; $('#dFoot').innerHTML = '<button class="btn btn-line" style="width:100%" data-close>Nastavi kupovinu</button>'; return; }
+    $('#dBody').innerHTML = cart.map((i, n) => `<div class="ci"><div class="th">${i.img ? `<img src="${esc(i.img)}" alt="">` : ''}</div>
+      <div><b>${esc(i.name)}</b><small>${esc(i.variant)}</small>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:6px"><div class="qty"><button data-q="${n}" data-d="-1">−</button><span>${i.qty}</span><button data-q="${n}" data-d="1">+</button></div>
+      <button class="rm" data-rm="${n}">Ukloni</button></div></div><div class="lp">${km(i.price * i.qty)}</div></div>`).join('');
+    $('#dFoot').innerHTML = `<div class="sum tot"><span>Ukupno</span><span>${km(sub)}</span></div><p style="font-size:13px;color:var(--muted);margin:4px 0 14px">Dostava se bira u sljedećem koraku.</p>
+      <button class="btn btn-gold" style="width:100%" id="toCheckout">Nastavi na narudžbu</button>`;
+  } else if (step === 'checkout') {
+    $('#dBody').innerHTML = `<form id="of" novalidate>
+      <div class="f"><label>Ime i prezime *</label><input name="name" required autocomplete="name"></div>
+      <div class="f"><label>Telefon (Viber / WhatsApp) *</label><input name="phone" required type="tel" autocomplete="tel" placeholder="06x xxx xxx"></div>
+      <div class="f"><label>Email</label><input name="email" type="email" autocomplete="email"></div>
+      <div class="f"><label>Način dostave *</label><div class="dl">${deliveries.map((d, n) => `<label class="opt"><input type="radio" name="del" value="${d.id}" ${n === 0 ? 'checked' : ''}><span><span>${esc(d.name)}</span><small>${esc(d.description || '')}</small></span><span class="p">${+d.price ? km(d.price) : 'Besplatno'}</span></label>`).join('')}</div></div>
+      <div id="addr"><div class="f"><label>Adresa *</label><input name="address" autocomplete="street-address"></div>
+      <div class="f"><label>Grad / poštanski broj *</label><input name="city" autocomplete="address-level2"></div></div>
+      <div class="f"><label>Napomena</label><textarea name="note" rows="2"></textarea></div>
+      <div class="pay">Plaćanje: <b style="font-weight:500;color:var(--ink)">pouzećem</b> (gotovinom prilikom preuzimanja)</div>
+      <div class="err" id="ferr"></div></form>`;
+    const upd = () => {
+      const d = deliveries.find(x => x.id === (document.querySelector('[name=del]:checked') || {}).value) || {price: 0, needs_address: false};
+      $('#addr').style.display = d.needs_address ? '' : 'none';
+      $('#fDel').textContent = +d.price ? km(d.price) : 'Besplatno';
+      $('#fTot').textContent = km(sub + +d.price);
+    };
+    $('#dFoot').innerHTML = `<div class="sum"><span>Proizvodi</span><span>${km(sub)}</span></div><div class="sum"><span>Dostava</span><span id="fDel"></span></div>
+      <div class="sum tot"><span>Za platiti</span><span id="fTot"></span></div>
+      <div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-line" id="back">Nazad</button><button class="btn btn-gold grow" id="send">Naruči</button></div>`;
+    $('#of').addEventListener('change', e => { if (e.target.name === 'del') upd(); }); upd();
+  }
+}
+async function sendOrder(btn) {
+  const f = new FormData($('#of')), g = k => (f.get(k) || '').toString().trim();
+  const d = deliveries.find(x => x.id === g('del'));
+  const err = m => { $('#ferr').textContent = m; };
+  if (!g('name') || !g('phone')) return err('Upišite ime i telefon.');
+  if (!d) return err('Odaberite način dostave.');
+  if (d.needs_address && (!g('address') || !g('city'))) return err('Upišite adresu i grad za dostavu.');
+  btn.disabled = true; btn.textContent = 'Šaljem…';
+  const {data, error} = await sb.rpc('lax_place_order', {p_name: g('name'), p_phone: g('phone'), p_email: g('email'), p_address: g('address'), p_city: g('city'), p_note: g('note'), p_delivery: d.id, p_items: cart.map(i => ({variant_id: i.id, qty: i.qty}))});
+  if (error) { btn.disabled = false; btn.textContent = 'Naruči'; return err(error.message || 'Narudžba nije poslana. Pokušajte ponovo ili nas pozovite.'); }
+  cart = []; saveCart(); step = 'done';
+  $('#dTitle').textContent = 'Hvala!';
+  $('#dBody').innerHTML = `<div class="ok"><div class="ic"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 5 5 9-10"/></svg></div>
+    <h4>Narudžba #${esc(data.order_no)} je primljena</h4><p>Ukupno ${km(data.total)}. Javićemo vam se uskoro na telefon ili Viber radi potvrde.</p></div>`;
+  $('#dFoot').innerHTML = '<button class="btn btn-line" style="width:100%" data-close>Zatvori</button>';
+  load();
+}
+$('#dBody').addEventListener('click', e => {
+  const q = e.target.closest('[data-q]'), r = e.target.closest('[data-rm]');
+  if (q) { const i = cart[q.dataset.q]; i.qty = Math.max(1, Math.min(99, i.qty + +q.dataset.d)); saveCart(); drawCart(); }
+  if (r) { cart.splice(+r.dataset.rm, 1); saveCart(); drawCart(); }
+});
+$('#dFoot').addEventListener('click', e => {
+  if (e.target.id === 'toCheckout') { step = 'checkout'; drawCart(); }
+  if (e.target.id === 'back') { step = 'cart'; drawCart(); }
+  if (e.target.id === 'send') sendOrder(e.target);
+});
+
+// ---------- otvaranje / zatvaranje ----------
+function open(s) { $(s).classList.add('on'); $('#ov').classList.add('on'); document.body.style.overflow = 'hidden'; }
+function closeAll() { ['#modal', '#drawer', '#ov'].forEach(s => $(s).classList.remove('on')); document.body.style.overflow = ''; }
+document.addEventListener('click', e => { if (e.target.closest('[data-close]') || e.target.id === 'ov') closeAll(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+$('#grid').addEventListener('click', e => { const p = e.target.closest('.pc'); if (p) openProduct(p.dataset.id); });
+$('#openCart').onclick = openCart;
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cat = b.dataset.c; document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b)); render(); });
+
+saveCart(); load();
+</script>
+</body>
+</html>

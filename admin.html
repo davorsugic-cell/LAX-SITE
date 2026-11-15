@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin — LAX Shop</title>
+<link rel="icon" type="image/png" href="/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f7f1ea;--bg2:#efe5d9;--card:#fbf7f2;--line:#e4d6c5;--ink:#2b2420;--muted:#7a6c60;--gold:#a8803f;--gold2:#c9a467;--gold-dk:#8a6630;--red:#a8423f;--green:#3f7a4f;--serif:'Cormorant Garamond',Georgia,serif;--sans:'Jost',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:300;line-height:1.5;font-size:15px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.hide{display:none!important}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:30px;border:1px solid var(--line);background:var(--card);font-size:13px;letter-spacing:.08em;white-space:nowrap}
+.btn-gold{background:var(--gold);border-color:var(--gold);color:#fff}
+.btn-red{color:var(--red);border-color:#e7c9c6}
+.btn:disabled{opacity:.5}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+input[type=checkbox]{width:auto;accent-color:var(--gold)}
+label.l{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+
+/* login */
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.lbox{width:min(380px,100%);background:var(--card);border:1px solid var(--line);border-radius:22px;padding:34px 30px;text-align:center}
+.lbox img{width:84px;border-radius:50%;margin:0 auto 14px;display:block}
+.lbox h1{font-family:var(--serif);font-weight:500;font-size:32px}
+.lbox p{color:var(--muted);margin-bottom:20px;font-size:14px}
+.lbox .f{text-align:left;margin-bottom:12px}
+.msg{font-size:14px;margin-top:10px;color:var(--red)}
+
+/* app */
+header{background:var(--ink);color:#f3ebe1;position:sticky;top:0;z-index:20}
+.hdr{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
+.hdr .b{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:22px}
+.hdr .b img{width:36px;border-radius:50%}
+.hdr .u{font-size:13px;color:#b8aa9a;display:flex;gap:12px;align-items:center}
+.hdr .u .btn{background:transparent;color:#f3ebe1;border-color:#5a4e44;padding:7px 14px}
+nav.tabs{display:flex;gap:6px;padding:16px 0;flex-wrap:wrap}
+nav.tabs button{padding:9px 18px;border-radius:30px;border:1px solid var(--line);background:transparent;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+nav.tabs button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--gold);color:#fff;font-size:11px;margin-left:6px}
+.bar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+.bar h2{font-family:var(--serif);font-weight:500;font-size:30px}
+.bar select{width:auto}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:12px}
+.ord .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.ord .no{font-family:var(--serif);font-size:24px}
+.ord .dt{color:var(--muted);font-size:13px}
+.ord .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+.ord .items div{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.ord .tot{font-family:var(--serif);font-size:22px;text-align:right;margin-top:6px}
+.ord a{color:var(--gold-dk)}
+.st{padding:4px 12px;border-radius:20px;font-size:12px;letter-spacing:.06em;background:var(--bg2)}
+.st.nova{background:#f5e3c4;color:#7a5410}.st.potvrđena{background:#e2ecf6;color:#2d5677}.st.poslana{background:#ebe3f5;color:#5a3d7a}.st.završena{background:#e0efe3;color:var(--green)}.st.otkazana{background:#f3dddc;color:var(--red)}
+.contact a{margin-right:10px;font-size:13px}
+
+.plist{display:grid;gap:10px}
+.prow{display:grid;grid-template-columns:64px 1fr auto auto;gap:14px;align-items:center}
+.th{width:64px;height:64px;border-radius:12px;background:var(--bg2);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center}
+.th img{width:100%;height:100%;object-fit:cover}
+.prow b{font-family:var(--serif);font-weight:500;font-size:22px;display:block}
+.prow small{color:var(--muted)}
+.off{opacity:.55}
+
+/* editor */
+.ed{position:fixed;inset:0;background:rgba(43,36,32,.45);z-index:50;display:flex;justify-content:flex-end}
+.edp{width:min(860px,100vw);height:100%;background:var(--bg);overflow:auto;padding:24px}
+.edp h3{font-family:var(--serif);font-weight:500;font-size:30px;margin-bottom:16px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.imgbox{display:flex;gap:14px;align-items:center}
+.imgbox .th{width:96px;height:96px}
+.vt{width:100%;border-collapse:collapse;margin-top:8px}
+.vt th{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left;font-weight:400;padding:6px 4px}
+.vt td{padding:5px 4px;vertical-align:middle}
+.vt input{padding:7px 8px;font-size:14px}
+.vt .th{width:44px;height:44px;border-radius:8px;cursor:pointer}
+.gen{background:var(--bg2);border-radius:14px;padding:14px;margin:14px 0}
+.gen .row{grid-template-columns:1fr 1fr 1fr;margin:8px 0 0}
+.acts{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;position:sticky;bottom:0;background:var(--bg);padding:14px 0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:30px;z-index:99;font-size:14px}
+.dl .card{display:grid;grid-template-columns:2fr 2fr 1fr auto auto auto;gap:10px;align-items:end}
+
+@media (max-width:760px){
+  .ord .grid,.row,.gen .row{grid-template-columns:1fr}
+  .prow{grid-template-columns:56px 1fr;}
+  .prow .btn{grid-column:2}
+  .vt thead{display:none}
+  .vt tr{display:grid;grid-template-columns:44px 1fr 1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .vt td{padding:0}
+  .dl .card{grid-template-columns:1fr 1fr}
+  .hdr .u span{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- PRIJAVA -->
+<div class="login hide" id="loginView">
+  <form class="lbox" id="loginForm">
+    <img src="/logo.png" alt="LAX">
+    <h1>LAX Shop</h1>
+    <p>Prijava za administraciju shopa</p>
+    <div class="f"><label class="l">Email</label><input name="email" type="email" autocomplete="username" required></div>
+    <div class="f"><label class="l">Lozinka</label><input name="password" type="password" autocomplete="current-password" required></div>
+    <button class="btn btn-gold" style="width:100%;padding:13px">Prijavi se</button>
+    <div class="msg" id="loginMsg"></div>
+  </form>
+</div>
+
+<!-- APLIKACIJA -->
+<div class="hide" id="appView">
+  <header><div class="wrap hdr">
+    <div class="b"><img src="/logo.png" alt="">LAX Shop admin</div>
+    <div class="u"><span id="who"></span><a class="btn" href="/shop" target="_blank">Otvori shop</a><button class="btn" id="logout">Odjava</button></div>
+  </div></header>
+  <div class="wrap">
+    <nav class="tabs" id="tabs">
+      <button data-t="orders" class="on">Narudžbe<span class="badge hide" id="newN"></span></button>
+      <button data-t="products">Proizvodi</button>
+      <button data-t="delivery">Dostava</button>
+    </nav>
+
+    <section id="t-orders">
+      <div class="bar"><h2>Narudžbe</h2>
+        <select id="ordFilter"><option value="">Sve</option><option>nova</option><option>potvrđena</option><option>poslana</option><option>završena</option><option>otkazana</option></select></div>
+      <div id="orders"></div>
+    </section>
+
+    <section id="t-products" class="hide">
+      <div class="bar"><h2>Proizvodi</h2><button class="btn btn-gold" id="newProd">+ Novi proizvod</button></div>
+      <div class="plist" id="plist"></div>
+    </section>
+
+    <section id="t-delivery" class="hide">
+      <div class="bar"><h2>Načini dostave</h2><button class="btn btn-gold" id="newDel">+ Dodaj</button></div>
+      <div class="dl" id="dlist"></div>
+    </section>
+  </div>
+</div>
+
+<!-- UREĐIVANJE PROIZVODA -->
+<div class="ed hide" id="ed"><div class="edp">
+  <h3 id="edTitle">Proizvod</h3>
+  <div class="row">
+    <div><label class="l">Naziv *</label><input id="pName"></div>
+    <div><label class="l">Kategorija</label><select id="pCat"><option value="kosa">Kosa</option><option value="preparati">Preparati</option></select></div>
+  </div>
+  <div style="margin-bottom:12px"><label class="l">Opis</label><textarea id="pDesc" rows="3"></textarea></div>
+  <div class="row">
+    <div><label class="l">Glavna slika</label><div class="imgbox"><div class="th" id="pImg">nema slike</div>
+      <div><input type="file" id="pFile" accept="image/*" style="width:220px"><button class="btn btn-red" id="pImgDel" style="margin-top:6px;padding:6px 12px">Ukloni sliku</button></div></div></div>
+    <div><label class="l">Prikaz</label><label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="pActive"> Vidljiv u shopu</label>
+      <label class="l" style="margin-top:10px">Redoslijed</label><input id="pSort" type="number" style="width:100px"></div>
+  </div>
+
+  <div class="bar" style="margin-top:20px"><h2 style="font-size:24px">Varijante i cijene</h2><button class="btn" id="addVar">+ Varijanta</button></div>
+  <p style="font-size:13px;color:var(--muted)">Za kosu popuni dužinu i boju. Za preparate koristi "Oznaka" (npr. 250 ml). Zaliha prazno = ne prati se. Klik na sličicu = slika te varijante.</p>
+  <div class="gen" id="gen">
+    <b style="font-weight:400">Brzo dodavanje kombinacija</b>
+    <div class="row">
+      <div><label class="l">Dužine (cm, zarezom)</label><input id="gLen" placeholder="50, 70, 100"></div>
+      <div><label class="l">Boje (zarezom)</label><input id="gCol" placeholder="Plava, Crna, Smeđa"></div>
+      <div><label class="l">Cijene po dužini (KM)</label><input id="gPr" placeholder="150, 200, 280"></div>
+    </div>
+    <button class="btn" id="genBtn" style="margin-top:10px">Dodaj kombinacije</button>
+  </div>
+  <table class="vt"><thead><tr><th></th><th>Dužina cm</th><th>Boja</th><th>Oznaka</th><th>Cijena KM</th><th>Zaliha</th><th>Aktivna</th><th></th></tr></thead><tbody id="vbody"></tbody></table>
+  <input type="file" id="vFile" accept="image/*" class="hide">
+
+  <div class="acts">
+    <button class="btn btn-red" id="pDelete">Obriši proizvod</button>
+    <span style="flex:1"></span>
+    <button class="btn" id="edCancel">Odustani</button>
+    <button class="btn btn-gold" id="edSave">Sačuvaj</button>
+  </div>
+</div></div>
+
+<script>
+const C = window.LAX_CONFIG || {};
+const sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const km = n => Number(n).toLocaleString('bs-BA', {maximumFractionDigits: 2}) + ' KM';
+const toast = m => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); };
+const STAT = ['nova', 'potvrđena', 'poslana', 'završena', 'otkazana'];
+
+// ---------- prijava ----------
+async function boot() {
+  const {data: {session}} = await sb.auth.getSession();
+  if (!session) return showLogin();
+  const {data, error} = await sb.from('lax_admins').select('user_id').eq('user_id', session.user.id).maybeSingle();
+  if (error || !data) { await sb.auth.signOut(); return showLogin('Ovaj nalog nema admin pristup shopu.'); }
+  $('#who').textContent = session.user.email;
+  $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide');
+  loadOrders(); loadProducts(); loadDelivery();
+}
+function showLogin(msg) { $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); $('#loginMsg').textContent = msg || ''; }
+$('#loginForm').onsubmit = async e => {
+  e.preventDefault(); const f = new FormData(e.target);
+  $('#loginMsg').textContent = '';
+  const {error} = await sb.auth.signInWithPassword({email: f.get('email'), password: f.get('password')});
+  if (error) return $('#loginMsg').textContent = 'Pogrešan email ili lozinka.';
+  boot();
+};
+$('#logout').onclick = async () => { await sb.auth.signOut(); showLogin(); };
+
+$('#tabs').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
+  ['orders', 'products', 'delivery'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
+};
+
+// ---------- narudžbe ----------
+let orders = [];
+async function loadOrders() {
+  const {data, error} = await sb.from('lax_orders').select('*').order('created_at', {ascending: false}).limit(300);
+  if (error) return $('#orders').innerHTML = '<div class="card">Greška: ' + esc(error.message) + '</div>';
+  orders = data; drawOrders();
+}
+function drawOrders() {
+  const f = $('#ordFilter').value, list = orders.filter(o => !f || o.status === f);
+  const nn = orders.filter(o => o.status === 'nova').length;
+  $('#newN').textContent = nn; $('#newN').classList.toggle('hide', !nn);
+  if (!list.length) return $('#orders').innerHTML = '<div class="card" style="text-align:center;color:var(--muted)">Nema narudžbi.</div>';
+  $('#orders').innerHTML = list.map(o => {
+    const tel = o.phone.replace(/[^\d+]/g, ''), intl = tel.startsWith('+') ? tel.slice(1) : tel.startsWith('0') ? '387' + tel.slice(1) : tel;
+    return `<div class="card ord"><div class="top"><div><span class="no">#${o.order_no}</span> <span class="st ${o.status}">${o.status}</span>
+      <div class="dt">${new Date(o.created_at).toLocaleString('bs-BA')}</div></div>
+      <select data-st="${o.id}" style="width:auto">${STAT.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+      <div class="grid"><div><b style="font-weight:400">${esc(o.customer_name)}</b><div class="contact"><a href="tel:${esc(tel)}">${esc(o.phone)}</a><a href="viber://chat?number=%2B${esc(intl)}">Viber</a><a href="https://wa.me/${esc(intl)}" target="_blank">WhatsApp</a></div>
+        ${o.email ? `<div style="font-size:13px">${esc(o.email)}</div>` : ''}
+        <div style="margin-top:8px"><span class="st">${esc(o.delivery_name)}</span></div>
+        ${o.address ? `<div style="font-size:14px;margin-top:6px">${esc(o.address)}, ${esc(o.city || '')}</div>` : ''}
+        ${o.note ? `<div style="font-size:13px;color:var(--muted);margin-top:6px">Napomena: ${esc(o.note)}</div>` : ''}</div>
+      <div class="items">${(o.items || []).map(i => `<div><span>${esc(i.product)} · ${esc(i.variant)} × ${i.qty}</span><span>${km(i.line_total)}</span></div>`).join('')}
+        <div><span>Dostava</span><span>${km(o.delivery_price)}</span></div>
+        <div class="tot">${km(o.total)} <small style="font-size:13px;color:var(--muted)">${esc(o.payment)}</small></div></div></div></div>`;
+  }).join('');
+}
+$('#ordFilter').onchange = drawOrders;
+$('#orders').addEventListener('change', async e => {
+  const s = e.target.closest('[data-st]'); if (!s) return;
+  const {error} = await sb.from('lax_orders').update({status: s.value}).eq('id', s.dataset.st);
+  if (error) return toast('Greška: ' + error.message);
+  orders.find(o => o.id === s.dataset.st).status = s.value; drawOrders(); toast('Status promijenjen');
+});
+
+// ---------- proizvodi ----------
+let products = [];
+async function loadProducts() {
+  const {data, error} = await sb.from('lax_products').select('*, lax_variants(*)').order('sort').order('created_at');
+  if (error) return $('#plist').innerHTML = '<div class="card">Greška: ' + esc(error.message) + '</div>';
+  products = data;
+  $('#plist').innerHTML = products.length ? products.map(p => {
+    const v = p.lax_variants || [], pr = v.map(x => +x.price);
+    return `<div class="card prow ${p.active ? '' : 'off'}"><div class="th">${p.image_url ? `<img src="${esc(p.image_url)}">` : 'nema slike'}</div>
+      <div><b>${esc(p.name)}</b><small>${esc(p.category)} · ${v.length} varijanti${pr.length ? ' · ' + km(Math.min(...pr)) + (Math.max(...pr) !== Math.min(...pr) ? ' – ' + km(Math.max(...pr)) : '') : ''}${p.active ? '' : ' · skriven'}</small></div>
+      <button class="btn" data-tog="${p.id}">${p.active ? 'Sakrij' : 'Prikaži'}</button><button class="btn btn-gold" data-ed="${p.id}">Uredi</button></div>`;
+  }).join('') : '<div class="card" style="text-align:center;color:var(--muted)">Nema proizvoda.</div>';
+}
+$('#plist').addEventListener('click', async e => {
+  const t = e.target.closest('[data-tog]'), d = e.target.closest('[data-ed]');
+  if (t) { const p = products.find(x => x.id === t.dataset.tog); await sb.from('lax_products').update({active: !p.active}).eq('id', p.id); loadProducts(); }
+  if (d) openEditor(products.find(x => x.id === d.dataset.ed));
+});
+$('#newProd').onclick = () => openEditor(null);
+
+// slike: smanji na max 1600px i pošalji u storage
+async function uploadImage(file) {
+  const img = await createImageBitmap(file);
+  const s = Math.min(1, 1600 / Math.max(img.width, img.height));
+  const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .86));
+  const path = `products/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+  const {error} = await sb.storage.from(C.BUCKET).upload(path, blob, {contentType: 'image/jpeg', upsert: false});
+  if (error) throw error;
+  return sb.storage.from(C.BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+let ep = null, vars = [], removed = [], vImgIdx = -1;
+function openEditor(p) {
+  ep = p ? {...p} : {name: '', category: 'kosa', description: '', image_url: null, active: true, sort: 0};
+  vars = p ? (p.lax_variants || []).map(v => ({...v})).sort((a, b) => a.sort - b.sort) : [];
+  removed = [];
+  $('#edTitle').textContent = p ? 'Uredi proizvod' : 'Novi proizvod';
+  $('#pName').value = ep.name; $('#pCat').value = ep.category; $('#pDesc').value = ep.description || '';
+  $('#pActive').checked = ep.active; $('#pSort').value = ep.sort; $('#pFile').value = '';
+  $('#pDelete').classList.toggle('hide', !p);
+  drawImg(); drawVars(); $('#ed').classList.remove('hide');
+}
+function drawImg() { $('#pImg').innerHTML = ep.image_url ? `<img src="${esc(ep.image_url)}">` : 'nema slike'; }
+function drawVars() {
+  $('#vbody').innerHTML = vars.map((v, i) => `<tr>
+    <td><div class="th" data-vimg="${i}" title="Dodaj sliku">${v.image_url ? `<img src="${esc(v.image_url)}">` : '+ slika'}</div></td>
+    <td><input type="number" data-i="${i}" data-k="length_cm" value="${v.length_cm ?? ''}" placeholder="—"></td>
+    <td><input data-i="${i}" data-k="color" value="${esc(v.color || '')}" placeholder="—"></td>
+    <td><input data-i="${i}" data-k="label" value="${esc(v.label || '')}" placeholder="—"></td>
+    <td><input type="number" step="0.01" data-i="${i}" data-k="price" value="${v.price ?? ''}"></td>
+    <td><input type="number" data-i="${i}" data-k="stock" value="${v.stock ?? ''}" placeholder="∞"></td>
+    <td style="text-align:center"><input type="checkbox" data-i="${i}" data-k="active" ${v.active !== false ? 'checked' : ''}></td>
+    <td><button class="btn btn-red" data-rmv="${i}" style="padding:6px 10px">×</button></td></tr>`).join('') || '<tr><td colspan="8" style="color:var(--muted);padding:12px 4px">Nema varijanti, dodaj bar jednu.</td></tr>';
+}
+$('#vbody').addEventListener('input', e => {
+  const t = e.target; if (t.dataset.i == null) return;
+  const v = vars[+t.dataset.i], k = t.dataset.k;
+  if (k === 'active') v.active = t.checked;
+  else if (['length_cm', 'stock'].includes(k)) v[k] = t.value === '' ? null : parseInt(t.value);
+  else if (k === 'price') v.price = t.value === '' ? null : parseFloat(t.value);
+  else v[k] = t.value.trim() || null;
+});
+$('#vbody').addEventListener('click', e => {
+  const r = e.target.closest('[data-rmv]'), im = e.target.closest('[data-vimg]');
+  if (r) { const v = vars.splice(+r.dataset.rmv, 1)[0]; if (v.id) removed.push(v.id); drawVars(); }
+  if (im) { vImgIdx = +im.dataset.vimg; $('#vFile').click(); }
+});
+$('#vFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f || vImgIdx < 0) return;
+  try { toast('Šaljem sliku…'); vars[vImgIdx].image_url = await uploadImage(f); drawVars(); } catch (err) { toast('Greška: ' + err.message); }
+  e.target.value = '';
+};
+$('#pFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { toast('Šaljem sliku…'); ep.image_url = await uploadImage(f); drawImg(); } catch (err) { toast('Greška: ' + err.message); }
+};
+$('#pImgDel').onclick = () => { ep.image_url = null; drawImg(); };
+$('#addVar').onclick = () => { vars.push({length_cm: null, color: null, label: null, price: null, stock: null, active: true}); drawVars(); };
+$('#genBtn').onclick = () => {
+  const L = $('#gLen').value.split(',').map(s => parseInt(s)).filter(n => n > 0);
+  const Cs = $('#gCol').value.split(',').map(s => s.trim()).filter(Boolean);
+  const P = $('#gPr').value.split(',').map(s => parseFloat(s)).filter(n => !isNaN(n));
+  if (!L.length && !Cs.length) return toast('Upiši dužine i/ili boje');
+  (L.length ? L : [null]).forEach((l, i) => (Cs.length ? Cs : [null]).forEach(c => {
+    if (vars.some(v => v.length_cm === l && (v.color || null) === c)) return;
+    vars.push({length_cm: l, color: c, label: null, price: P[i] ?? P[0] ?? null, stock: null, active: true});
+  }));
+  drawVars();
+};
+$('#edCancel').onclick = () => $('#ed').classList.add('hide');
+$('#ed').addEventListener('click', e => { if (e.target.id === 'ed') $('#ed').classList.add('hide'); });
+
+$('#edSave').onclick = async () => {
+  const name = $('#pName').value.trim();
+  if (!name) return toast('Upiši naziv');
+  if (vars.some(v => v.price == null || isNaN(v.price))) return toast('Svaka varijanta mora imati cijenu');
+  const btn = $('#edSave'); btn.disabled = true;
+  try {
+    const row = {name, category: $('#pCat').value, description: $('#pDesc').value.trim() || null, image_url: ep.image_url, active: $('#pActive').checked, sort: parseInt($('#pSort').value) || 0};
+    let pid = ep.id;
+    if (pid) { const {error} = await sb.from('lax_products').update(row).eq('id', pid); if (error) throw error; }
+    else { const {data, error} = await sb.from('lax_products').insert(row).select().single(); if (error) throw error; pid = data.id; }
+    if (removed.length) { const {error} = await sb.from('lax_variants').delete().in('id', removed); if (error) throw error; }
+    for (const [i, v] of vars.entries()) {
+      const r = {product_id: pid, length_cm: v.length_cm, color: v.color, label: v.label, price: v.price, stock: v.stock, image_url: v.image_url || null, active: v.active !== false, sort: i};
+      const {error} = v.id ? await sb.from('lax_variants').update(r).eq('id', v.id) : await sb.from('lax_variants').insert(r);
+      if (error) throw error;
+    }
+    toast('Sačuvano'); $('#ed').classList.add('hide'); loadProducts();
+  } catch (err) { toast('Greška: ' + err.message); }
+  btn.disabled = false;
+};
+$('#pDelete').onclick = async () => {
+  if (!ep.id) return;
+  const b = $('#pDelete');
+  if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = 'Klikni ponovo za brisanje'; setTimeout(() => { delete b.dataset.sure; b.textContent = 'Obriši proizvod'; }, 3000); return; }
+  const {error} = await sb.from('lax_products').delete().eq('id', ep.id);
+  if (error) return toast('Greška: ' + error.message);
+  toast('Obrisano'); $('#ed').classList.add('hide'); loadProducts();
+};
+
+// ---------- dostava ----------
+let dels = [];
+async function loadDelivery() {
+  const {data, error} = await sb.from('lax_delivery').select('*').order('sort');
+  if (error) return $('#dlist').innerHTML = '<div class="card">Greška: ' + esc(error.message) + '</div>';
+  dels = data; drawDel();
+}
+function drawDel() {
+  $('#dlist').innerHTML = dels.map((d, i) => `<div class="card">
+    <div><label class="l">Naziv</label><input data-d="${i}" data-k="name" value="${esc(d.name)}"></div>
+    <div><label class="l">Opis</label><input data-d="${i}" data-k="description" value="${esc(d.description || '')}"></div>
+    <div><label class="l">Cijena KM</label><input type="number" step="0.01" data-d="${i}" data-k="price" value="${d.price}"></div>
+    <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" data-d="${i}" data-k="needs_address" ${d.needs_address ? 'checked' : ''}>Traži adresu</label>
+    <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" data-d="${i}" data-k="active" ${d.active ? 'checked' : ''}>Aktivna</label>
+    <button class="btn btn-gold" data-sd="${i}">Sačuvaj</button></div>`).join('');
+}
+$('#dlist').addEventListener('input', e => {
+  const t = e.target; if (t.dataset.d == null) return; const d = dels[+t.dataset.d];
+  d[t.dataset.k] = t.type === 'checkbox' ? t.checked : t.dataset.k === 'price' ? parseFloat(t.value) || 0 : t.value;
+});
+$('#dlist').addEventListener('click', async e => {
+  const b = e.target.closest('[data-sd]'); if (!b) return;
+  const d = dels[+b.dataset.sd], r = {name: d.name, description: d.description || null, price: d.price, needs_address: d.needs_address, active: d.active, sort: d.sort ?? +b.dataset.sd};
+  const {error} = d.id ? await sb.from('lax_delivery').update(r).eq('id', d.id) : await sb.from('lax_delivery').insert(r);
+  if (error) return toast('Greška: ' + error.message);
+  toast('Sačuvano'); loadDelivery();
+});
+$('#newDel').onclick = () => { dels.push({name: 'Nova dostava', description: '', price: 0, needs_address: true, active: true, sort: dels.length + 1}); drawDel(); };
+
+// nove narudžbe: osvježi svake minute
+setInterval(() => { if (!$('#appView').classList.contains('hide')) loadOrders(); }, 60000);
+boot();
+</script>
+</body>
+</html>
