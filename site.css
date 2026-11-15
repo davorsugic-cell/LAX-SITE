@@ -82,6 +82,17 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;text-align:center;fo
 footer nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;margin-bottom:14px;letter-spacing:.12em}
 footer nav a:hover{color:var(--gold-dk)}
 
+@media (min-width:901px){
+  header{background:rgba(251,247,242,.96);border-bottom:2px solid var(--gold2)}
+  .hdr{height:92px}.brand img{width:60px;height:60px}.brand b{font-size:32px}
+  .hnav{gap:8px}
+  .hnav a:not(.cta){font-size:15px;color:var(--ink);font-weight:500;letter-spacing:.14em;padding:12px 16px;position:relative}
+  .hnav a:not(.cta)::after{content:"";position:absolute;left:16px;right:16px;bottom:4px;height:2px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+  .hnav a:not(.cta):hover::after{transform:scaleX(1)}
+  .hnav a:not(.cta):hover{color:var(--gold-dk)}
+  .hnav a.cta{padding:15px 26px;font-size:14px;margin-left:10px;box-shadow:0 8px 20px rgba(138,102,48,.3)}
+}
+
 .mbar{display:none}
 @media (max-width:900px){
   .hero{grid-template-columns:1fr}.hero-ic{display:none}
