@@ -103,11 +103,11 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;position:sticky;bottom:0;background:var(--bg);padding:14px 0}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:30px;z-index:99;font-size:14px}
 .sw{display:flex;gap:8px;align-items:center;font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:30px;padding:8px 14px}
-.svc{display:grid;grid-template-columns:2fr 2.4fr 90px 100px auto auto auto auto auto;gap:8px;align-items:center;padding:12px 14px}
+.svc{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,2.4fr) 76px 92px 50px 82px 86px 100px 44px;gap:8px;align-items:center;padding:12px 14px}
 .svc .ck{display:flex;gap:5px;align-items:center;font-size:12px;color:var(--muted);white-space:nowrap}
 .svc input{padding:8px 10px;font-size:14px}
 .svc.off{opacity:.55}
-.svc-h{display:grid;grid-template-columns:2fr 2.4fr 90px 100px auto auto auto auto auto;gap:8px;padding:0 14px 6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.svc-h{display:grid;align-items:end;grid-template-columns:minmax(0,2fr) minmax(0,2.4fr) 76px 92px 50px 82px 86px 100px 44px;gap:8px;padding:0 15px 6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .catrow{display:grid;grid-template-columns:2fr 1.4fr 90px auto auto auto;gap:10px;align-items:center;padding:12px 16px}
 .catrow small{color:var(--muted);font-size:12px}
 .tmrow{display:grid;grid-template-columns:110px 1fr 1fr;gap:12px 16px;align-items:start;padding:16px}
@@ -525,7 +525,7 @@ async function loadServices() {
 }
 function drawServices() {
   const cat = $('#svcCat').value, list = svcs.map((x, i) => ({x, i})).filter(o => o.x.category === cat);
-  $('#svcList').innerHTML = (list.length ? '<div class="svc-h"><span>Naziv</span><span>Opis</span><span>Min</span><span>Cijena KM</span><span>Od</span><span>Cijena</span><span>Aktivna</span><span></span><span></span></div>' : '') +
+  $('#svcList').innerHTML = (list.length ? '<div class="svc-h"><span>Naziv</span><span>Opis</span><span>Min</span><span>Cijena KM</span><span>Od</span><span>Prikaži</span><span>Aktivna</span><span></span><span></span></div>' : '') +
     (list.map(({x, i}) => `<div class="card svc ${x.active ? '' : 'off'}">
       <input data-s="${i}" data-k="name" value="${esc(x.name)}" placeholder="Naziv tretmana">
       <input data-s="${i}" data-k="description" value="${esc(x.description || '')}" placeholder="Opis (opcionalno)">
@@ -534,7 +534,7 @@ function drawServices() {
       <label class="ck"><input type="checkbox" data-s="${i}" data-k="price_from" ${x.price_from ? 'checked' : ''}>od</label>
       <label class="ck"><input type="checkbox" data-s="${i}" data-k="show_price" ${x.show_price ? 'checked' : ''}>prikaži</label>
       <label class="ck"><input type="checkbox" data-s="${i}" data-k="active" ${x.active ? 'checked' : ''}>aktivna</label>
-      <button class="btn btn-gold" data-ss="${i}" style="padding:8px 14px">Sačuvaj</button>
+      <button class="btn btn-gold" data-ss="${i}" style="padding:8px 10px">Sačuvaj</button>
       <button class="btn btn-red" data-sx="${i}" style="padding:8px 12px">×</button></div>`).join('') ||
      '<div class="card" style="text-align:center;color:var(--muted)">Nema stavki za ovu uslugu. Klikni "+ Dodaj stavku".</div>');
 }
