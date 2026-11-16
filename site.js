@@ -35,14 +35,10 @@
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function km(n){ return Number(n).toLocaleString('bs-BA',{maximumFractionDigits:2}) + ' KM'; }
   function empty(){ box.innerHTML = '<p class="muted">Za cijene i slobodne termine pozovite nas ili pišite na Viber / WhatsApp.</p>'; }
-  if (!window.supabase || !C.SUPABASE_URL || /OVDJE|VAS-PROJEKAT/.test(C.SUPABASE_URL + C.SUPABASE_ANON_KEY)) return empty();
-  var sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
-  Promise.all([
-    sb.from('lax_services').select('*').eq('category', cat).eq('active', true).order('sort').order('created_at'),
-    sb.from('lax_settings').select('value').eq('key','services_show_prices').maybeSingle()
-  ]).then(function(r){
-    var list = (r[0].data || []), show = !r[1].data || r[1].data.value !== false;
-    if (r[0].error || !list.length) return empty();
+  if (!window.laxData || !C.SUPABASE_URL || /OVDJE|VAS-PROJEKAT/.test(C.SUPABASE_URL + C.SUPABASE_ANON_KEY)) return empty();
+  laxData().then(function(D){
+    var list = (D.services || []).filter(function(x){ return x.category === cat; }), show = D.settings.services_show_prices !== false;
+    if (!list.length) return empty();
     box.innerHTML = list.map(function(x){
       var showP = show && x.show_price && x.price != null;
       var meta = [x.description, x.duration_min ? x.duration_min + ' min' : ''].filter(Boolean).join(' · ');

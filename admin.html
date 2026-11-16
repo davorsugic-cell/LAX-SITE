@@ -73,6 +73,14 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 .off{opacity:.55}
 
 /* editor */
+.pub{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:18px 0 4px;padding:12px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.pub a.btn{color:var(--ink);text-decoration:none}
+.pub .ps{flex:1;min-width:200px;font-size:14px;color:var(--muted)}
+.pub .ps b{color:var(--ink);font-weight:500}
+.pub.dirty{border-color:var(--gold2);background:#fbf1e0}
+.pub.dirty .ps b{color:var(--gold-dk)}
+.pub .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);margin-right:8px;vertical-align:1px}
+.pub.dirty .dot{background:var(--gold)}
 .cf{position:fixed;inset:0;background:rgba(43,36,32,.55);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px}
 .cfb{background:var(--bg);border-radius:18px;max-width:420px;width:100%;padding:26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
 .cfb h4{font-family:var(--serif);font-weight:500;font-size:26px;margin:0 0 8px;color:var(--red)}
@@ -146,6 +154,10 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
     <div class="u"><span id="who"></span><a class="btn" href="/shop" target="_blank">Otvori shop</a><button class="btn" id="logout">Odjava</button></div>
   </div></header>
   <div class="wrap">
+    <div class="pub" id="pub"><div class="ps"><span class="dot"></span><span id="pubTxt">Provjeravam…</span></div>
+      <a class="btn" href="/?pregled=1" target="_blank" rel="noopener">Pregled sajta</a>
+      <a class="btn" href="/shop?pregled=1" target="_blank" rel="noopener">Pregled shopa</a>
+      <button class="btn btn-gold" id="pubBtn">Objavi izmjene</button></div>
     <nav class="tabs" id="tabs">
       <button data-t="orders" class="on">Narudžbe<span class="badge hide" id="newN"></span></button>
       <button data-t="products">Proizvodi</button>
@@ -241,7 +253,8 @@ const sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const km = n => Number(n).toLocaleString('bs-BA', {maximumFractionDigits: 2}) + ' KM';
-const toast = m => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); };
+const toast0 = m => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); };
+const toast = m => { toast0(m); if (/Sačuvano|obrisan|Obrisano|promijenjen/i.test(m)) setTimeout(pubStatus, 400); };
 const STAT = ['nova', 'potvrđena', 'poslana', 'završena', 'otkazana'];
 
 // ---------- prijava ----------
@@ -251,7 +264,7 @@ async function boot() {
   const {data, error} = await sb.from('lax_admins').select('user_id').eq('user_id', session.user.id).maybeSingle();
   if (error || !data) { await sb.auth.signOut(); return showLogin('Ovaj nalog nema admin pristup shopu.'); }
   $('#who').textContent = session.user.email;
-  $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide');
+  $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide'); pubStatus();
   loadCategories().then(loadProducts); loadOrders(); loadServices(); loadTeam(); loadDelivery();
 }
 function showLogin(msg) { $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); $('#loginMsg').textContent = msg || ''; }
@@ -321,15 +334,16 @@ async function loadProducts() {
 }
 $('#plist').addEventListener('click', async e => {
   const t = e.target.closest('[data-tog]'), d = e.target.closest('[data-ed]');
-  if (t) { const p = products.find(x => x.id === t.dataset.tog); await sb.from('lax_products').update({active: !p.active}).eq('id', p.id); loadProducts(); }
+  if (t) { const p = products.find(x => x.id === t.dataset.tog); await sb.from('lax_products').update({active: !p.active}).eq('id', p.id); loadProducts(); pubStatus(); }
   if (d) openEditor(products.find(x => x.id === d.dataset.ed));
   const x = e.target.closest('[data-del]');
   if (x) delProduct(products.find(p => p.id === x.dataset.del));
 });
 // sigurnosno pitanje
-function askConfirm(title, text) {
+function askConfirm(title, text, ok = 'Obriši', danger = true) {
   return new Promise(res => {
-    $('#cfT').textContent = title; $('#cfX').textContent = text; $('#cf').classList.remove('hide'); $('#cfNo').focus();
+    $('#cfT').textContent = title; $('#cfX').textContent = text; $('#cfYes').textContent = ok;
+    $('#cfYes').className = 'btn ' + (danger ? 'btn-danger' : 'btn-gold'); $('#cfT').style.color = danger ? '' : 'var(--ink)'; $('#cf').classList.remove('hide'); $('#cfNo').focus();
     const done = v => { $('#cf').classList.add('hide'); $('#cfYes').onclick = $('#cfNo').onclick = $('#cf').onclick = document.onkeydown = null; res(v); };
     $('#cfYes').onclick = () => done(true); $('#cfNo').onclick = () => done(false);
     $('#cf').onclick = e => { if (e.target.id === 'cf') done(false); };
@@ -527,7 +541,7 @@ function drawServices() {
 $('#svcCat').onchange = drawServices;
 $('#showPrices').onchange = async e => {
   const {error} = await sb.from('lax_settings').upsert({key: 'services_show_prices', value: e.target.checked});
-  toast(error ? 'Greška: ' + error.message : e.target.checked ? 'Cijene se prikazuju na sajtu' : 'Cijene su sakrivene (na upit)');
+  toast(error ? 'Greška: ' + error.message : e.target.checked ? 'Cijene uključene – vidljivo nakon objave' : 'Cijene sakrivene – vidljivo nakon objave'); pubStatus();
 };
 $('#newSvc').onclick = () => {
   const cat = $('#svcCat').value, n = svcs.filter(x => x.category === cat).length;
@@ -638,6 +652,31 @@ $('#newDel').onclick = () => { dels.push({name: 'Nova dostava', description: '',
 
 // nove narudžbe: osvježi svake minute
 setInterval(() => { if (!$('#appView').classList.contains('hide')) loadOrders(); }, 60000);
+// ---------- objava ----------
+const fdt = t => new Date(t).toLocaleString('bs-BA', {day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+let PUB = null;
+async function pubStatus() {
+  const {data, error} = await sb.from('lax_published').select('published_at,draft_changed_at').maybeSingle();
+  if (error || !data) { $('#pubTxt').innerHTML = 'Objava nije podešena (pokreni <b>objava.sql</b>).'; $('#pubBtn').disabled = true; return; }
+  PUB = data; const dirty = !!data.draft_changed_at;
+  $('#pub').classList.toggle('dirty', dirty); $('#pubBtn').disabled = false;
+  $('#pubTxt').innerHTML = dirty
+    ? '<b>Imate neobjavljene izmjene.</b> Sajt ih ne prikazuje dok ne kliknete „Objavi izmjene“.'
+    : '<b>Sajt je ažuran.</b>' + (data.published_at ? ' Zadnja objava: ' + fdt(data.published_at) : '');
+}
+$('#pubBtn').onclick = async () => {
+  const dirty = PUB && PUB.draft_changed_at;
+  const ok = await askConfirm('Objaviti izmjene?', dirty
+    ? 'Sve izmjene proizvoda, kategorija, cjenovnika, tima i dostave postaju odmah vidljive na sajtu. Prije objave možete otvoriti „Pregled sajta“.'
+    : 'Nema novih izmjena od zadnje objave. Želite li ipak ponovo objaviti trenutno stanje?', 'Objavi', false);
+  if (!ok) return;
+  const b = $('#pubBtn'); b.disabled = true; b.textContent = 'Objavljujem…';
+  const {error} = await sb.rpc('lax_publish');
+  b.textContent = 'Objavi izmjene'; b.disabled = false;
+  if (error) return toast0('Greška: ' + error.message);
+  toast0('Objavljeno na sajtu ✓'); pubStatus();
+};
+setInterval(() => { if (!$('#appView').classList.contains('hide')) pubStatus(); }, 20000);
 boot();
 </script>
 </body>

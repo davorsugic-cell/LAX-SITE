@@ -21,6 +21,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/data.js"></script>
 <style>
 :root{--bg:#f7f1ea;--bg2:#efe5d9;--card:#fbf7f2;--line:#e4d6c5;--ink:#2b2420;--muted:#7a6c60;--gold:#a8803f;--gold2:#c9a467;--gold-dk:#8a6630;--red:#a8423f;--serif:'Cormorant Garamond',Georgia,serif;--sans:'Jost',system-ui,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -205,7 +206,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;text-align:center;fo
 <script>
 const C = window.LAX_CONFIG || {};
 const configured = C.SUPABASE_URL && !C.SUPABASE_URL.includes('VAS-PROJEKAT') && C.SUPABASE_ANON_KEY && !C.SUPABASE_ANON_KEY.includes('OVDJE');
-const sb = configured ? supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY) : null;
+const sb = configured ? laxClient() : null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const km = n => Number(n).toLocaleString('bs-BA', {minimumFractionDigits: Number(n) % 1 ? 2 : 0, maximumFractionDigits: 2}) + ' KM';
@@ -219,12 +220,14 @@ const saveCart = () => { try { localStorage.setItem('lax_cart', JSON.stringify(c
 
 async function load() {
   if (!sb) { $('#grid').innerHTML = '<div class="notice">Shop još nije povezan s bazom (config.js).</div>'; return; }
-  const [p, d, c] = await Promise.all([
-    sb.from('lax_products').select('*, lax_variants(*)').eq('active', true).order('sort').order('created_at'),
-    sb.from('lax_delivery').select('*').eq('active', true).order('sort'),
-    sb.from('lax_categories').select('*').eq('active', true).order('sort')
-  ]);
-  if (p.error) { $('#grid').innerHTML = '<div class="notice">Greška pri učitavanju proizvoda.</div>'; console.error(p.error); return; }
+  let D;
+  try { D = await laxData(); } catch (err) { $('#grid').innerHTML = '<div class="notice">Greška pri učitavanju proizvoda.</div>'; console.error(err); return; }
+  // stvarno stanje zalihe (mijenja se s narudžbama, ne čeka objavu)
+  if (!D.preview) {
+    const s = await sb.from('lax_variants').select('id,stock');
+    if (!s.error) { const sm = Object.fromEntries((s.data || []).map(x => [x.id, x.stock])); D.products.forEach(pr => (pr.lax_variants || []).forEach(v => { if (v.id in sm) v.stock = sm[v.id]; })); }
+  }
+  const p = {data: D.products}, d = {data: D.delivery}, c = {data: D.categories};
   products = (p.data || []).map(x => ({...x, v: (x.lax_variants || []).filter(v => v.active).sort((a, b) => a.sort - b.sort || (a.length_cm||0) - (b.length_cm||0))})).filter(x => x.v.length);
   deliveries = d.data || [];
   cats = c.data || []; CATN = Object.fromEntries(cats.map(x => [x.slug, x.name]));
