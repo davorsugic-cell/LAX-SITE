@@ -65,7 +65,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 .contact a{margin-right:10px;font-size:13px}
 
 .plist{display:grid;gap:10px}
-.prow{display:grid;grid-template-columns:64px 1fr auto auto;gap:14px;align-items:center}
+.prow{display:grid;grid-template-columns:64px 1fr auto auto auto;gap:14px;align-items:center}
 .th{width:64px;height:64px;border-radius:12px;background:var(--bg2);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center}
 .th img{width:100%;height:100%;object-fit:cover}
 .prow b{font-family:var(--serif);font-weight:500;font-size:22px;display:block}
@@ -73,6 +73,12 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 .off{opacity:.55}
 
 /* editor */
+.cf{position:fixed;inset:0;background:rgba(43,36,32,.55);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px}
+.cfb{background:var(--bg);border-radius:18px;max-width:420px;width:100%;padding:26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.cfb h4{font-family:var(--serif);font-weight:500;font-size:26px;margin:0 0 8px;color:var(--red)}
+.cfb p{margin:0 0 20px;color:var(--ink);line-height:1.5}
+.cfb .act{display:flex;gap:10px;justify-content:flex-end}
+.btn-danger{background:var(--red);border-color:var(--red);color:#fff}
 .ed{position:fixed;inset:0;background:rgba(43,36,32,.45);z-index:50;display:flex;justify-content:flex-end}
 .edp{width:min(860px,100vw);height:100%;background:var(--bg);overflow:auto;padding:24px}
 .edp h3{font-family:var(--serif);font-weight:500;font-size:30px;margin-bottom:16px}
@@ -106,6 +112,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
   .ord .grid,.row,.gen .row{grid-template-columns:1fr}
   .prow{grid-template-columns:56px 1fr;}
   .prow .btn{grid-column:2}
+  .prow .pbtns{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
   .vt thead{display:none}
   .vt tr{display:grid;grid-template-columns:44px 1fr 1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
   .vt td{padding:0}
@@ -191,6 +198,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 </div>
 
 <!-- UREĐIVANJE PROIZVODA -->
+<div class="cf hide" id="cf"><div class="cfb" role="alertdialog" aria-modal="true"><h4 id="cfT"></h4><p id="cfX"></p><div class="act"><button class="btn" id="cfNo">Odustani</button><button class="btn btn-danger" id="cfYes">Obriši</button></div></div></div>
 <div class="ed hide" id="ed"><div class="edp">
   <h3 id="edTitle">Proizvod</h3>
   <div class="row">
@@ -307,7 +315,7 @@ async function loadProducts() {
     const v = p.lax_variants || [], pr = v.map(x => +x.price);
     return `<div class="card prow ${p.active ? '' : 'off'}"><div class="th">${p.image_url ? `<img src="${esc(p.image_url)}">` : 'nema slike'}</div>
       <div><b>${esc(p.name)}</b><small>${esc(CATS.find(c => c.slug === p.category)?.name || p.category)} · ${v.length} varijanti${pr.length ? ' · ' + km(Math.min(...pr)) + (Math.max(...pr) !== Math.min(...pr) ? ' – ' + km(Math.max(...pr)) : '') : ''}${p.active ? '' : ' · skriven'}</small></div>
-      <button class="btn" data-tog="${p.id}">${p.active ? 'Sakrij' : 'Prikaži'}</button><button class="btn btn-gold" data-ed="${p.id}">Uredi</button></div>`;
+      <button class="btn" data-tog="${p.id}">${p.active ? 'Sakrij' : 'Prikaži'}</button><button class="btn btn-red" data-del="${p.id}">Obriši</button><button class="btn btn-gold" data-ed="${p.id}">Uredi</button></div>`;
   }).join('') : '<div class="card" style="text-align:center;color:var(--muted)">Nema proizvoda.</div>';
   if (typeof drawCats === 'function' && CATS.length) drawCats();
 }
@@ -315,7 +323,28 @@ $('#plist').addEventListener('click', async e => {
   const t = e.target.closest('[data-tog]'), d = e.target.closest('[data-ed]');
   if (t) { const p = products.find(x => x.id === t.dataset.tog); await sb.from('lax_products').update({active: !p.active}).eq('id', p.id); loadProducts(); }
   if (d) openEditor(products.find(x => x.id === d.dataset.ed));
+  const x = e.target.closest('[data-del]');
+  if (x) delProduct(products.find(p => p.id === x.dataset.del));
 });
+// sigurnosno pitanje
+function askConfirm(title, text) {
+  return new Promise(res => {
+    $('#cfT').textContent = title; $('#cfX').textContent = text; $('#cf').classList.remove('hide'); $('#cfNo').focus();
+    const done = v => { $('#cf').classList.add('hide'); $('#cfYes').onclick = $('#cfNo').onclick = $('#cf').onclick = document.onkeydown = null; res(v); };
+    $('#cfYes').onclick = () => done(true); $('#cfNo').onclick = () => done(false);
+    $('#cf').onclick = e => { if (e.target.id === 'cf') done(false); };
+    document.onkeydown = e => { if (e.key === 'Escape') done(false); };
+  });
+}
+async function delProduct(p) {
+  if (!p) return false;
+  const n = (p.lax_variants || []).length;
+  const ok = await askConfirm('Obrisati proizvod?', `Da li ste sigurni da želite trajno obrisati „${p.name}“` + (n ? ` i ${n} ${n % 10 === 1 && n % 100 !== 11 ? 'varijantu' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? 'varijante' : 'varijanti'}` : '') + '? Ovo se ne može vratiti. Ako ga samo želite skloniti sa sajta, koristite „Sakrij“.');
+  if (!ok) return false;
+  const {error} = await sb.from('lax_products').delete().eq('id', p.id);
+  if (error) { toast('Greška: ' + error.message); return false; }
+  toast('Proizvod obrisan'); loadProducts(); return true;
+}
 $('#newProd').onclick = () => openEditor(null);
 
 // slike: smanji na max 1600px i pošalji u storage
@@ -414,11 +443,7 @@ $('#edSave').onclick = async () => {
 };
 $('#pDelete').onclick = async () => {
   if (!ep.id) return;
-  const b = $('#pDelete');
-  if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = 'Klikni ponovo za brisanje'; setTimeout(() => { delete b.dataset.sure; b.textContent = 'Obriši proizvod'; }, 3000); return; }
-  const {error} = await sb.from('lax_products').delete().eq('id', ep.id);
-  if (error) return toast('Greška: ' + error.message);
-  toast('Obrisano'); $('#ed').classList.add('hide'); loadProducts();
+  if (await delProduct(products.find(p => p.id === ep.id) || ep)) $('#ed').classList.add('hide');
 };
 
 // ---------- kategorije ----------
