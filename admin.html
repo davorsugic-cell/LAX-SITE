@@ -150,7 +150,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 
     <section id="t-orders">
       <div class="bar"><h2>Narudžbe</h2>
-        <select id="ordFilter"><option value="">Sve</option><option>nova</option><option>potvrđena</option><option>poslana</option><option>završena</option><option>otkazana</option></select></div>
+        <select id="ordFilter"><option value="">Sve</option><option selected>nova</option><option>potvrđena</option><option>poslana</option><option>završena</option><option>otkazana</option></select></div>
       <div id="orders"></div>
     </section>
 
@@ -273,7 +273,7 @@ function drawOrders() {
   const f = $('#ordFilter').value, list = orders.filter(o => !f || o.status === f);
   const nn = orders.filter(o => o.status === 'nova').length;
   $('#newN').textContent = nn; $('#newN').classList.toggle('hide', !nn);
-  if (!list.length) return $('#orders').innerHTML = '<div class="card" style="text-align:center;color:var(--muted)">Nema narudžbi.</div>';
+  if (!list.length) return $('#orders').innerHTML = '<div class="card" style="text-align:center;color:var(--muted)">' + (f === 'nova' ? 'Nema novih narudžbi. Za starije izaberi \u201eSve\u201c gore desno.' : 'Nema narudžbi.') + '</div>';
   $('#orders').innerHTML = list.map(o => {
     const tel = o.phone.replace(/[^\d+]/g, ''), intl = tel.startsWith('+') ? tel.slice(1) : tel.startsWith('0') ? '387' + tel.slice(1) : tel;
     return `<div class="card ord"><div class="top"><div><span class="no">#${o.order_no}</span> <span class="st ${o.status}">${o.status}</span>
