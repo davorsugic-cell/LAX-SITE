@@ -96,6 +96,10 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 .svc-h{display:grid;grid-template-columns:2fr 2.4fr 90px 100px auto auto auto auto auto;gap:8px;padding:0 14px 6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .catrow{display:grid;grid-template-columns:2fr 1.4fr 90px auto auto auto;gap:10px;align-items:center;padding:12px 16px}
 .catrow small{color:var(--muted);font-size:12px}
+.tmrow{display:grid;grid-template-columns:110px 1fr 1fr;gap:12px 16px;align-items:start;padding:16px}
+.tmrow .th{width:110px;height:146px;border-radius:60px 60px 12px 12px;cursor:pointer}
+.tmrow .full{grid-column:2/4}
+.tmrow .acts2{grid-column:2/4;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .dl .card{display:grid;grid-template-columns:2fr 2fr 1fr auto auto auto;gap:10px;align-items:end}
 
 @media (max-width:760px){
@@ -107,6 +111,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
   .vt td{padding:0}
   .dl .card{grid-template-columns:1fr 1fr}
   .catrow{grid-template-columns:1fr 1fr}
+  .tmrow{grid-template-columns:90px 1fr}.tmrow .th{width:90px;height:120px}.tmrow .full,.tmrow .acts2{grid-column:1/3}
   .svc{grid-template-columns:1fr 1fr}.svc input[data-k=name],.svc input[data-k=description]{grid-column:1/-1}.svc-h{display:none}
   .hdr .u span{display:none}
 }
@@ -139,6 +144,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
       <button data-t="products">Proizvodi</button>
       <button data-t="categories">Kategorije</button>
       <button data-t="services">Cjenovnik</button>
+      <button data-t="team">Tim</button>
       <button data-t="delivery">Dostava</button>
     </nav>
 
@@ -168,6 +174,13 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
         </div></div>
       <p style="font-size:13px;color:var(--muted);margin:-4px 0 14px">Kad su cijene isključene (globalno ili za stavku), na sajtu piše "Cijena na upit". "Od" prikazuje cijenu kao "od 30 KM".</p>
       <div id="svcList"></div>
+    </section>
+
+    <section id="t-team" class="hide">
+      <div class="bar"><h2>Naš tim</h2><button class="btn btn-gold" id="newTm">+ Dodaj člana</button></div>
+      <p style="font-size:13px;color:var(--muted);margin:-4px 0 14px">Članovi tima se prikazuju na početnoj stranici u sekciji "Naš tim". Klik na sliku = učitaj fotografiju (najbolje uspravna, portret). Dok nema nijednog aktivnog člana, sekcija je sakrivena.</p>
+      <input type="file" id="tmFile" accept="image/*" class="hide">
+      <div id="tmList"></div>
     </section>
 
     <section id="t-delivery" class="hide">
@@ -231,7 +244,7 @@ async function boot() {
   if (error || !data) { await sb.auth.signOut(); return showLogin('Ovaj nalog nema admin pristup shopu.'); }
   $('#who').textContent = session.user.email;
   $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide');
-  loadCategories().then(loadProducts); loadOrders(); loadServices(); loadDelivery();
+  loadCategories().then(loadProducts); loadOrders(); loadServices(); loadTeam(); loadDelivery();
 }
 function showLogin(msg) { $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); $('#loginMsg').textContent = msg || ''; }
 $('#loginForm').onsubmit = async e => {
@@ -246,7 +259,7 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); showLogin(); };
 $('#tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['orders', 'products', 'categories', 'services', 'delivery'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
+  ['orders', 'products', 'categories', 'services', 'team', 'delivery'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
 };
 
 // ---------- narudžbe ----------
@@ -519,6 +532,55 @@ $('#svcList').addEventListener('click', async e => {
     svcs.splice(i, 1); drawServices(); toast('Obrisano');
   }
 });
+
+// ---------- tim ----------
+let team = [], tmImg = -1;
+async function loadTeam() {
+  const {data, error} = await sb.from('lax_team').select('*').order('sort').order('created_at');
+  if (error) return $('#tmList').innerHTML = '<div class="card">Greška: ' + esc(error.message) + ' (da li je pokrenut tim.sql?)</div>';
+  team = data; drawTeam();
+}
+function drawTeam() {
+  $('#tmList').innerHTML = team.map((m, i) => `<div class="card tmrow ${m.active === false ? 'off' : ''}">
+    <div class="th" data-tmimg="${i}" title="Učitaj fotografiju" style="grid-row:span 3">${m.photo_url ? `<img src="${esc(m.photo_url)}">` : '+ fotografija'}</div>
+    <div><label class="l">Ime i prezime *</label><input data-m="${i}" data-k="name" value="${esc(m.name || '')}"></div>
+    <div><label class="l">Uloga</label><input data-m="${i}" data-k="role" value="${esc(m.role || '')}" placeholder="npr. Vlasnica, edukatorka"></div>
+    <div class="full"><label class="l">Kratak opis</label><textarea data-m="${i}" data-k="bio" rows="2" placeholder="npr. Specijalizovana za nadogradnju kose…">${esc(m.bio || '')}</textarea></div>
+    <div class="acts2">
+      <div style="flex:1;min-width:160px"><label class="l">Instagram (opcionalno)</label><input data-m="${i}" data-k="instagram" value="${esc(m.instagram || '')}" placeholder="@korisnicko_ime"></div>
+      <div style="width:90px"><label class="l">Redoslijed</label><input type="number" data-m="${i}" data-k="sort" value="${m.sort ?? i}"></div>
+      <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-top:18px"><input type="checkbox" data-m="${i}" data-k="active" ${m.active !== false ? 'checked' : ''}>Prikaži</label>
+      <button class="btn btn-gold" data-ms="${i}" style="margin-top:18px">Sačuvaj</button>
+      <button class="btn btn-red" data-mx="${i}" style="margin-top:18px">×</button>
+    </div></div>`).join('') || '<div class="card" style="text-align:center;color:var(--muted)">Još nema članova tima. Klikni "+ Dodaj člana".</div>';
+}
+$('#newTm').onclick = () => { team.push({name: '', role: '', bio: '', instagram: '', photo_url: null, sort: team.length + 1, active: true}); drawTeam(); const ins = document.querySelectorAll('#tmList input[data-k=name]'); ins[ins.length - 1]?.focus(); };
+$('#tmList').addEventListener('input', e => {
+  const t = e.target; if (t.dataset.m == null) return; const m = team[+t.dataset.m], k = t.dataset.k;
+  m[k] = t.type === 'checkbox' ? t.checked : k === 'sort' ? (parseInt(t.value) || 0) : t.value;
+});
+$('#tmList').addEventListener('click', async e => {
+  const im = e.target.closest('[data-tmimg]'), sv = e.target.closest('[data-ms]'), dx = e.target.closest('[data-mx]');
+  if (im) { tmImg = +im.dataset.tmimg; $('#tmFile').click(); }
+  if (sv) {
+    const m = team[+sv.dataset.ms]; if (!(m.name || '').trim()) return toast('Upiši ime');
+    const r = {name: m.name.trim(), role: (m.role || '').trim() || null, bio: (m.bio || '').trim() || null, instagram: (m.instagram || '').trim() || null, photo_url: m.photo_url || null, sort: m.sort ?? 0, active: m.active !== false};
+    const res = m.id ? await sb.from('lax_team').update(r).eq('id', m.id).select().single() : await sb.from('lax_team').insert(r).select().single();
+    if (res.error) return toast('Greška: ' + res.error.message);
+    team[+sv.dataset.ms] = res.data; drawTeam(); toast('Sačuvano');
+  }
+  if (dx) {
+    const i = +dx.dataset.mx, m = team[i];
+    if (!dx.dataset.sure) { dx.dataset.sure = 1; dx.textContent = 'Obriši?'; setTimeout(() => { delete dx.dataset.sure; dx.textContent = '×'; }, 3000); return; }
+    if (m.id) { const {error} = await sb.from('lax_team').delete().eq('id', m.id); if (error) return toast('Greška: ' + error.message); }
+    team.splice(i, 1); drawTeam(); toast('Obrisano');
+  }
+});
+$('#tmFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f || tmImg < 0) return;
+  try { toast('Šaljem fotografiju…'); team[tmImg].photo_url = await uploadImage(f); drawTeam(); toast('Fotografija učitana — klikni Sačuvaj'); } catch (err) { toast('Greška: ' + err.message); }
+  e.target.value = '';
+};
 
 // ---------- dostava ----------
 let dels = [];

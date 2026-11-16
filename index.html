@@ -26,7 +26,7 @@
 <script src="/book.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BeautySalon","name":"LAX Studio","slogan":"All in one","url":"https://www.lax.ba/","image":"https://www.lax.ba/og.jpg","logo":"https://www.lax.ba/logo.png","telephone":"+38766864406","address":{"@type":"PostalAddress","streetAddress":"Aleja Svetog Save 17","addressLocality":"Banja Luka","addressCountry":"BA"},"hasMap":"https://www.google.com/maps/search/?api=1&query=Aleja+Svetog+Save+17,+Banja+Luka","openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday"],"opens":"12:00","closes":"19:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":["Thursday","Friday"],"opens":"09:00","closes":"16:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"09:00","closes":"15:00"}],"sameAs":["https://www.instagram.com/laxstudiobl/","https://www.instagram.com/laxnails/"]}
+{"@context":"https://schema.org","@type":"BeautySalon","name":"LAX Studio","slogan":"All in one","url":"https://www.lax.ba/","image":"https://www.lax.ba/og.jpg","logo":"https://www.lax.ba/logo.png","telephone":"+38766864406","address":{"@type":"PostalAddress","streetAddress":"Aleja Svetog Save 17","addressLocality":"Banja Luka","addressCountry":"BA"},"hasMap":"https://maps.google.com/?cid=5764135702871106314","openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday"],"opens":"12:00","closes":"19:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":["Thursday","Friday"],"opens":"09:00","closes":"16:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"09:00","closes":"15:00"}],"sameAs":["https://www.instagram.com/laxstudiobl/","https://www.instagram.com/laxnails/"]}
 </script>
 <style>
 :root{
@@ -257,6 +257,27 @@ h2{font-family:var(--serif);font-weight:400;font-size:clamp(38px,4.6vw,56px);lin
 .edu h2{color:#fff}
 .edu .eyebrow{color:#e2c48e}
 .edu p{color:#cbbdad}
+
+/* NAS TIM */
+#tim{padding-top:0}
+.team{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,270px));justify-content:center;gap:26px}
+.tm{text-align:center}
+.tm .ph{aspect-ratio:3/4;border-radius:200px 200px 22px 22px;overflow:hidden;background:radial-gradient(circle at 50% 35%,#fffaf3,#efe0cc 70%,#e2cdb1);display:flex;align-items:center;justify-content:center;box-shadow:0 16px 36px rgba(43,36,32,.12);border:1px solid var(--line)}
+.tm .ph img{width:100%;height:100%;object-fit:cover}
+.tm .ph img.lg{width:46%;height:auto;border-radius:50%;opacity:.8}
+.tm h3{font-family:var(--serif);font-weight:500;font-size:28px;margin-top:18px;line-height:1.1}
+.tm .rl{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-top:6px}
+.tm p{color:var(--muted);font-size:14.5px;margin-top:10px;line-height:1.6}
+.tm a.ig{display:inline-block;margin-top:10px;font-size:13px;color:var(--gold-dk);text-decoration:underline;text-underline-offset:3px}
+@media (max-width:560px){.team{grid-template-columns:1fr 1fr;gap:14px}.tm h3{font-size:21px}.tm p{font-size:13px}.tm .rl{font-size:10.5px;letter-spacing:.18em}}
+
+/* GOOGLE RECENZIJE */
+.rev{display:inline-flex;align-items:center;gap:12px;margin:26px auto 0;padding:14px 24px;border-radius:50px;background:#fff;border:1.5px solid var(--gold2);color:var(--ink);font-size:15px;box-shadow:0 8px 22px rgba(138,102,48,.12);transition:.2s}
+.rev:hover{transform:translateY(-2px);border-color:var(--gold)}
+.rev svg{width:22px;height:22px;color:#f4b400;flex:none}
+.rev b{font-weight:500;color:var(--gold-dk)}
+.rev-sm{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font-size:14px;color:var(--gold-dk);text-decoration:underline;text-underline-offset:3px}
+.rev-sm svg{width:16px;height:16px;color:#f4b400}
 footer{border-top:1px solid var(--line);padding:30px 0 40px;text-align:center;font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
 footer .made{display:block;margin-top:10px;font-size:10.5px;letter-spacing:.2em;opacity:.7}
 
@@ -340,7 +361,7 @@ footer .made{display:block;margin-top:10px;font-size:10.5px;letter-spacing:.2em;
       <div class="dd" id="dd">
         <button type="button" aria-expanded="false" aria-controls="ddp">Kontakt <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 4.5 3 3 3-3"/></svg></button>
         <div class="ddp" id="ddp">
-          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s7-7.6 7-12.5A7 7 0 0 0 5 8.5C5 13.4 12 21 12 21z"/><circle cx="12" cy="8.5" r="2.5"/></svg><div><b>Aleja Svetog Save 17, Banja Luka</b><a href="https://www.google.com/maps/dir/?api=1&amp;destination=Aleja+Svetog+Save+17,+Banja+Luka" target="_blank" rel="noopener">Upute do salona</a> · <a href="#lokacija">Mapa</a></div></div>
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s7-7.6 7-12.5A7 7 0 0 0 5 8.5C5 13.4 12 21 12 21z"/><circle cx="12" cy="8.5" r="2.5"/></svg><div><b>Aleja Svetog Save 17, Banja Luka</b><a href="https://www.google.com/maps/dir/?api=1&amp;destination=LAX+Studio+Banja+Luka&amp;destination_place_id=ChIJi50M1xEDXkcRCmPHzuFS_k8" target="_blank" rel="noopener">Upute do salona</a> · <a href="#lokacija">Mapa</a></div></div>
           <table class="hours" data-hours><tr data-d="1"><td>Ponedjeljak</td><td>12:00 – 19:00</td></tr><tr data-d="2"><td>Utorak</td><td>12:00 – 19:00</td></tr><tr data-d="3"><td>Srijeda</td><td>12:00 – 19:00</td></tr><tr data-d="4"><td>Četvrtak</td><td>09:00 – 16:00</td></tr><tr data-d="5"><td>Petak</td><td>09:00 – 16:00</td></tr><tr data-d="6"><td>Subota</td><td>09:00 – 15:00</td></tr><tr data-d="0"><td>Nedjelja</td><td>Zatvoreno</td></tr></table>
           <div class="st" data-status></div>
           <div class="acts"><a href="tel:+38766864406" class="c">Pozovite</a><a href="viber://chat?number=%2B38766864406">Viber</a><a href="https://wa.me/38766864406" target="_blank" rel="noopener">WhatsApp</a></div>
@@ -477,6 +498,17 @@ footer .made{display:block;margin-top:10px;font-size:10.5px;letter-spacing:.2em;
   </div>
 </section>
 
+<!-- NAS TIM (uređuje se u /admin → Tim) -->
+<section id="tim" hidden>
+  <div class="wrap">
+    <div class="sec-head">
+      <div><div class="eyebrow">LAX tim</div><h2>Naš tim</h2></div>
+      <p>Upoznajte ljude koji brinu o vašoj ljepoti.</p>
+    </div>
+    <div class="team" id="teamGrid"></div>
+  </div>
+</section>
+
 <!-- KONTAKT -->
 <section id="kontakt" class="contact">
   <div class="wrap reveal">
@@ -503,10 +535,12 @@ footer .made{display:block;margin-top:10px;font-size:10.5px;letter-spacing:.2em;
       <a href="https://wa.me/38766864406" target="_blank" rel="noopener" class="m-wa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4z"/><path d="M9 8.2c.3-.4.9-.4 1.1.1l.6 1.3c.2.4 0 .8-.3 1.1l-.3.3c.4 1 1.2 1.8 2.2 2.2l.3-.3c.3-.3.7-.5 1.1-.3l1.3.6c.5.2.5.8.1 1.1-.6.7-1.5.9-2.4.5-1.8-.7-3.2-2.2-3.9-3.9-.3-.9-.2-1.8.2-2.5z"/></svg>WhatsApp</a>
     </div>
 
+    <a href="https://search.google.com/local/writereview?placeid=ChIJi50M1xEDXkcRCmPHzuFS_k8" target="_blank" rel="noopener" class="rev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z"/></svg><span>Zadovoljni ste? <b>Ostavite nam recenziju na Googleu</b></span></a>
     <div class="socials">
       <a href="https://www.instagram.com/laxstudiobl/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor"/></svg>laxstudiobl</a>
       <a href="https://www.instagram.com/laxnails/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor"/></svg>laxnails</a>
       <a href="https://ig.me/m/laxstudiobl" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/></svg>Instagram poruka</a>
+      <a href="https://maps.google.com/?cid=5764135702871106314" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s7-7.6 7-12.5A7 7 0 0 0 5 8.5C5 13.4 12 21 12 21z"/><circle cx="12" cy="8.5" r="2.5"/></svg>Google Mape</a>
       <a href="https://lnk.bio/Laxstudiobl" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>Svi linkovi</a>
     </div>
 
@@ -514,19 +548,20 @@ footer .made{display:block;margin-top:10px;font-size:10.5px;letter-spacing:.2em;
       <div class="loc-card">
         <div class="eyebrow">Gdje smo</div>
         <h3>Posjetite nas</h3>
-        <div class="ad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s7-7.6 7-12.5A7 7 0 0 0 5 8.5C5 13.4 12 21 12 21z"/><circle cx="12" cy="8.5" r="2.5"/></svg><div>Aleja Svetog Save 17, Banja Luka<br><a href="https://www.google.com/maps/dir/?api=1&amp;destination=Aleja+Svetog+Save+17,+Banja+Luka" target="_blank" rel="noopener" style="color:var(--gold-dk);text-decoration:underline;font-size:14px">Upute do salona</a></div></div>
+        <div class="ad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s7-7.6 7-12.5A7 7 0 0 0 5 8.5C5 13.4 12 21 12 21z"/><circle cx="12" cy="8.5" r="2.5"/></svg><div>Aleja Svetog Save 17, Banja Luka<br><a href="https://www.google.com/maps/dir/?api=1&amp;destination=LAX+Studio+Banja+Luka&amp;destination_place_id=ChIJi50M1xEDXkcRCmPHzuFS_k8" target="_blank" rel="noopener" style="color:var(--gold-dk);text-decoration:underline;font-size:14px">Upute do salona</a></div></div>
         <div class="eyebrow" style="margin-bottom:6px">Radno vrijeme</div>
         <table class="hours" data-hours><tr data-d="1"><td>Ponedjeljak</td><td>12:00 – 19:00</td></tr><tr data-d="2"><td>Utorak</td><td>12:00 – 19:00</td></tr><tr data-d="3"><td>Srijeda</td><td>12:00 – 19:00</td></tr><tr data-d="4"><td>Četvrtak</td><td>09:00 – 16:00</td></tr><tr data-d="5"><td>Petak</td><td>09:00 – 16:00</td></tr><tr data-d="6"><td>Subota</td><td>09:00 – 15:00</td></tr><tr data-d="0"><td>Nedjelja</td><td>Zatvoreno</td></tr></table>
         <div class="st" data-status style="font-size:14px;color:var(--muted);margin-top:12px"></div>
+        <a href="https://search.google.com/local/writereview?placeid=ChIJi50M1xEDXkcRCmPHzuFS_k8" target="_blank" rel="noopener" class="rev-sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z"/></svg> Ostavite recenziju na Googleu</a>
       </div>
-      <div class="map"><iframe title="LAX Studio na mapi — Aleja Svetog Save 17, Banja Luka" src="https://www.google.com/maps?q=Aleja+Svetog+Save+17,+Banja+Luka&amp;z=16&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>
+      <div class="map"><iframe title="LAX Studio na mapi — Aleja Svetog Save 17, Banja Luka" src="https://www.google.com/maps?q=LAX+Studio,+Aleja+Svetog+Save+17,+Banja+Luka&amp;z=16&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>
     </div>
   </div>
 </section>
 </main>
 
 <footer>
-  <nav class="fnav"><a href="/nadogradnja-kose">Nadogradnja kose</a><a href="/nokti">Nokti</a><a href="/trepavice-i-obrve">Trepavice i obrve</a><a href="/trajna-sminka">Trajna šminka</a><a href="/tretmani-lica">Tretmani lica</a><a href="/tretmani-tijela">Tretmani tijela</a><a href="/sminkanje">Šminkanje</a><a href="/edukacije">Edukacije</a><a href="/shop">Shop</a></nav>
+  <nav class="fnav"><a href="/nadogradnja-kose">Nadogradnja kose</a><a href="/nokti">Nokti</a><a href="/trepavice-i-obrve">Trepavice i obrve</a><a href="/trajna-sminka">Trajna šminka</a><a href="/tretmani-lica">Tretmani lica</a><a href="/tretmani-tijela">Tretmani tijela</a><a href="/sminkanje">Šminkanje</a><a href="/edukacije">Edukacije</a><a href="/shop">Shop</a><a href="https://search.google.com/local/writereview?placeid=ChIJi50M1xEDXkcRCmPHzuFS_k8" target="_blank" rel="noopener">★ Google recenzije</a></nav>
   LAX Studio · Salon ljepote · Aleja Svetog Save 17, Banja Luka
   <span class="made">© <span id="y"></span> LAX Studio · All in one</span>
 </footer>
@@ -631,6 +666,20 @@ async function openPl(cat){
     return `<div class="pl-i"><div><b>${escH(x.name)}</b>${meta?`<small>${escH(meta)}</small>`:''}</div>${showP?`<div class="pr">${x.price_from?'od ':''}${kmF(x.price)}</div>`:'<div class="pr na">Cijena na upit</div>'}</div>`;
   }).join('');
 }
+// --- Naš tim (iz baze) ---
+async function loadTeam(){
+  const sb=sbClient(); if(!sb) return;
+  const {data,error}=await sb.from('lax_team').select('*').eq('active',true).order('sort').order('created_at');
+  if(error||!data||!data.length) return;
+  document.getElementById('teamGrid').innerHTML=data.map(m=>{
+    const ig=(m.instagram||'').replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/$/,'');
+    return `<div class="tm"><div class="ph">${m.photo_url?`<img src="${escH(m.photo_url)}" alt="${escH(m.name)}" loading="lazy">`:'<img class="lg" src="/logo.png" alt="">'}</div>
+      <h3>${escH(m.name)}</h3>${m.role?`<div class="rl">${escH(m.role)}</div>`:''}${m.bio?`<p>${escH(m.bio)}</p>`:''}
+      ${ig?`<a class="ig" href="https://www.instagram.com/${encodeURIComponent(ig)}/" target="_blank" rel="noopener">@${escH(ig)}</a>`:''}</div>`;
+  }).join('');
+  document.getElementById('tim').hidden=false;
+}
+window.addEventListener('DOMContentLoaded',loadTeam);
 document.querySelectorAll('.svc[data-cat]').forEach(c=>c.addEventListener('click',e=>{e.preventDefault();openPl(c.dataset.cat)}));
 document.getElementById('plX').onclick=closePl; plOv.onclick=closePl;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePl()});
