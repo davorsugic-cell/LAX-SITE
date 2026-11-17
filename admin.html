@@ -103,11 +103,11 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;position:sticky;bottom:0;background:var(--bg);padding:14px 0}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:30px;z-index:99;font-size:14px}
 .sw{display:flex;gap:8px;align-items:center;font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:30px;padding:8px 14px}
-.svc{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,2.4fr) 76px 92px 50px 82px 86px 100px 44px;gap:8px;align-items:center;padding:12px 14px}
+.svc{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,2.2fr) 70px 84px 46px 78px 70px 82px 96px 44px;gap:8px;align-items:center;padding:12px 14px}
 .svc .ck{display:flex;gap:5px;align-items:center;font-size:12px;color:var(--muted);white-space:nowrap}
 .svc input{padding:8px 10px;font-size:14px}
 .svc.off{opacity:.55}
-.svc-h{display:grid;align-items:end;grid-template-columns:minmax(0,2fr) minmax(0,2.4fr) 76px 92px 50px 82px 86px 100px 44px;gap:8px;padding:0 15px 6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.svc-h{display:grid;align-items:end;grid-template-columns:minmax(0,2fr) minmax(0,2.2fr) 70px 84px 46px 78px 70px 82px 96px 44px;gap:8px;padding:0 15px 6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .catrow{display:grid;grid-template-columns:2fr 1.4fr 90px auto auto auto;gap:10px;align-items:center;padding:12px 16px}
 .catrow small{color:var(--muted);font-size:12px}
 .tmrow{display:grid;grid-template-columns:110px 1fr 1fr;gap:12px 16px;align-items:start;padding:16px}
@@ -116,6 +116,59 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 .tmrow .acts2{grid-column:2/4;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .dl .card{display:grid;grid-template-columns:2fr 2fr 1fr auto auto auto;gap:10px;align-items:end}
 
+/* termini */
+.wk{display:flex;align-items:center;gap:8px;font-size:15px}.btn.rd{width:38px;height:38px;padding:0;border-radius:50%}
+.days{display:flex;gap:8px;margin:4px 0 14px;overflow-x:auto}.days button{flex:1;min-width:92px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:10px;font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center;justify-content:center;white-space:nowrap}
+.days button b{color:var(--ink);font-weight:600}.days button i{font-style:normal;background:#efe5d9;border-radius:20px;padding:1px 8px;font-size:11px}
+.days button.today{border-style:dashed}.days button.on{background:#fff;border-color:var(--gold2);box-shadow:0 0 0 2px #f1e3c8}.days button.on i{background:var(--gold);color:#fff}
+.apwrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:18px}
+.apg{display:grid;grid-template-columns:58px repeat(var(--n),minmax(210px,1fr)) 92px;min-width:calc(58px + var(--n)*210px + 92px);padding-bottom:14px}
+.aph{height:50px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--line);font-weight:600;font-size:15px;position:sticky;top:0;background:#fff}
+.aph small{color:var(--muted);font-weight:400}.aph .av{width:28px;height:28px;border-radius:50%;background:#efe5d9;display:flex;align-items:center;justify-content:center;font-size:12px;color:#8a6630}
+.aph.cabh{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500;justify-content:center}
+.aptimes{position:relative;margin-top:8px}.aptimes span{position:absolute;left:10px;top:0;transform:translateY(-8px);font-size:12px;color:var(--muted)}
+.apcol{position:relative;margin-top:8px;border-left:1px solid #eee3d6;cursor:copy}
+.apline{position:absolute;left:0;right:0;border-top:1px solid #eee3d6}.apline.half{border-top-style:dashed;border-color:#f3ebe1}
+.ap{position:absolute;left:4px;right:4px;border-radius:11px;padding:6px 10px;border-left:4px solid var(--gold);background:#fbf3e6;overflow:hidden;font-size:12px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.ap:hover{box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.ap.zavrsen{border-left-color:var(--green);background:#eef5ef}.ap.nije_dosla,.ap.otkazan{border-left-color:var(--red);background:#faeeed;opacity:.75}.ap.nije_dosla .u,.ap.otkazan .u{text-decoration:line-through}
+.ap .t{color:var(--muted);font-size:11px}.ap .u{font-weight:600;font-size:13px;margin:1px 0;padding-right:4px}.ap .k{color:#4a3f38}.pts{color:#b4506b;font-weight:600}
+.ap .tags{position:absolute;right:6px;bottom:6px;display:flex;gap:4px}.ap .tags span{font-size:9px;letter-spacing:.07em;border-radius:20px;padding:2px 7px;font-weight:600;background:#fff;color:var(--muted)}
+.ap .tags .cab{background:#2b2420;color:#fff}
+.apcab{position:relative;margin-top:8px}.cs{position:absolute;left:10px;right:10px;border-radius:8px;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600}
+.c0{background:#f6f1ea;color:#c4b5a4}.c1{background:#f5e3c4;color:#7a5410}.c2{background:#f3dddc;color:var(--red)}
+.leg{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin:12px 4px 4px}.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.lz{background:#fbf3e6;border-left:3px solid var(--gold)}.lv{background:#eef5ef;border-left:3px solid var(--green)}.ln{background:#faeeed;border-left:3px solid var(--red)}.lk2{background:#2b2420}.lc{background:#f3dddc}
+.md a.btn,.lnkbox a.btn{color:var(--ink);text-decoration:none}
+.hint{font-size:13px;color:var(--muted);margin:6px 4px 14px;line-height:1.5}
+.md{position:fixed;inset:0;background:rgba(43,36,32,.5);z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+.mdb{background:var(--bg);border-radius:20px;width:100%;max-width:560px;padding:22px 24px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
+.mdh{display:flex;align-items:center;gap:10px;margin-bottom:12px}.mdh h3{font-family:var(--serif);font-weight:500;font-size:28px;margin:0;flex:1}
+.mdh .x{border:0;background:none;font-size:26px;color:var(--muted);line-height:1}
+.f{margin-bottom:10px}.pt{font-size:12.5px;color:#b4506b;margin-top:5px;min-height:1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.row3b{display:grid;grid-template-columns:120px 1fr auto;gap:8px;margin-bottom:14px}
+.ck{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.warn{background:#f3dddc;color:#7d2f2c;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5;margin:6px 0 10px}.warn b{display:block}
+.lnk{border:0;background:none;color:#7d2f2c;text-decoration:underline;font-weight:600;padding:0;font-size:13px}
+.stbtns{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 4px;font-size:13px;color:var(--muted)}.stbtns .btn{padding:7px 12px;font-size:12px}
+.s-ok{background:var(--green)!important;border-color:var(--green)!important;color:#fff}
+.stb{font-size:11px;letter-spacing:.06em;border-radius:20px;padding:3px 10px;background:#f5e9d4;color:#8a6630}.stb.zavrsen{background:#e0efe3;color:var(--green)}.stb.nije_dosla,.stb.otkazan{background:#f3dddc;color:var(--red)}.stb:empty{display:none}
+.mact{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.clh,.clrow{display:grid;grid-template-columns:2fr 1.4fr 110px 140px 90px;gap:10px;align-items:center}
+.clh{padding:0 16px 6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.clrow{padding:12px 16px;cursor:pointer;margin-bottom:8px}
+.balbox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:18px 0 12px}.balbox small{display:block;color:var(--muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase}.balbox b{font-family:var(--serif);font-size:30px;font-weight:500;color:#b4506b}
+.rwb{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}.rwb .btn{font-size:12px;padding:8px 12px}
+.lnkbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:14px}.lnkbox code{display:block;font-size:12px;word-break:break-all;margin-bottom:8px;color:var(--ink)}.lnkbox div{display:flex;flex-wrap:wrap;gap:6px}.lnkbox .btn{font-size:12px;padding:7px 12px}
+.hist{max-height:220px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:12px}.ph{display:grid;grid-template-columns:90px 1fr 60px;gap:8px;padding:8px 12px;border-bottom:1px solid #f1e9df;font-size:13px}.ph b{text-align:right;color:var(--green)}.ph b.neg{color:var(--red)}
+.strow{display:grid;grid-template-columns:1.2fr 1.6fr 90px auto auto auto;gap:10px;align-items:end;padding:14px 16px}.strow .lk{font-size:12px;color:var(--muted);padding-bottom:10px}.strow .ck{padding-bottom:10px}
+.rwrow{display:grid;grid-template-columns:2fr 110px auto auto 44px;gap:8px;align-items:center;padding:12px 14px}
+
+@media (max-width:760px){
+  .clh{display:none}.clrow{grid-template-columns:1fr 1fr}.strow{grid-template-columns:1fr 1fr}.rwrow{grid-template-columns:1fr 90px}
+  .row3{grid-template-columns:1fr 1fr}.row3b{grid-template-columns:1fr 1fr}.wk b{font-size:13px}
+  .bar{flex-wrap:wrap;gap:10px}
+}
 @media (max-width:760px){
   .ord .grid,.row,.gen .row{grid-template-columns:1fr}
   .prow{grid-template-columns:56px 1fr;}
@@ -128,7 +181,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
   .catrow{grid-template-columns:1fr 1fr}
   .tmrow{grid-template-columns:90px 1fr}.tmrow .th{width:90px;height:120px}.tmrow .full,.tmrow .acts2{grid-column:1/3}
   .svc{grid-template-columns:1fr 1fr}.svc input[data-k=name],.svc input[data-k=description]{grid-column:1/-1}.svc-h{display:none}
-  .hdr .u span{display:none}
+  .hdr .u span,.hdr .u a{display:none}
 }
 </style>
 </head>
@@ -150,7 +203,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 <!-- APLIKACIJA -->
 <div class="hide" id="appView">
   <header><div class="wrap hdr">
-    <div class="b"><img src="/logo.png" alt="">LAX Shop admin</div>
+    <div class="b"><img src="/logo.png" alt="">LAX Studio admin</div>
     <div class="u"><span id="who"></span><a class="btn" href="/shop" target="_blank">Otvori shop</a><button class="btn" id="logout">Odjava</button></div>
   </div></header>
   <div class="wrap">
@@ -159,18 +212,45 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
       <a class="btn" href="/shop?pregled=1" target="_blank" rel="noopener">Pregled shopa</a>
       <button class="btn btn-gold" id="pubBtn">Objavi izmjene</button></div>
     <nav class="tabs" id="tabs">
-      <button data-t="orders" class="on">Narudžbe<span class="badge hide" id="newN"></span></button>
-      <button data-t="products">Proizvodi</button>
-      <button data-t="categories">Kategorije</button>
-      <button data-t="services">Cjenovnik</button>
-      <button data-t="team">Tim</button>
-      <button data-t="delivery">Dostava</button>
+      <button data-t="orders" class="on adm">Narudžbe<span class="badge hide" id="newN"></span></button>
+      <button data-t="appts">Termini</button>
+      <button data-t="clients">Klijentice</button>
+      <button data-t="products" class="adm">Proizvodi</button>
+      <button data-t="categories" class="adm">Kategorije</button>
+      <button data-t="services" class="adm">Cjenovnik</button>
+      <button data-t="team" class="adm">Tim</button>
+      <button data-t="delivery" class="adm">Dostava</button>
+      <button data-t="staff" class="adm">Radnice</button>
     </nav>
 
     <section id="t-orders">
       <div class="bar"><h2>Narudžbe</h2>
         <select id="ordFilter"><option value="">Sve</option><option selected>nova</option><option>potvrđena</option><option>poslana</option><option>završena</option><option>otkazana</option></select></div>
       <div id="orders"></div>
+    </section>
+
+    <section id="t-appts" class="hide">
+      <div class="bar"><h2>Plan termina</h2>
+        <div class="wk"><button class="btn rd" id="apPrev">‹</button><b id="apWeek"></b><button class="btn rd" id="apNext">›</button><button class="btn" id="apToday">Danas</button></div>
+        <button class="btn btn-gold" id="apNew">+ Novi termin</button></div>
+      <div class="days" id="apDays"></div>
+      <div class="apwrap" id="apGrid"><div class="card" style="color:var(--muted)">Učitavanje…</div></div>
+      <div class="leg"><span><i class="lz"></i>Zakazan</span><span><i class="lv"></i>Završen (bodovi dodani)</span><span><i class="ln"></i>Nije došla / otkazan</span><span><i class="lk2"></i>Treba kabinu</span><span><i class="lc"></i>Obje kabine zauzete</span></div>
+      <p class="hint">Klikni na prazno polje u koloni radnice da zakažeš termin u to vrijeme, ili na termin da ga otvoriš.</p>
+    </section>
+
+    <section id="t-clients" class="hide">
+      <div class="bar"><h2>Klijentice</h2><button class="btn btn-gold" id="clNew">+ Nova klijentkinja</button></div>
+      <input id="clQ" placeholder="Traži po imenu ili broju telefona…" style="margin-bottom:14px;max-width:420px">
+      <div id="clList"></div>
+    </section>
+
+    <section id="t-staff" class="hide">
+      <div class="bar"><h2>Radnice</h2><button class="btn btn-gold" id="stNew">+ Nova radnica</button></div>
+      <p class="hint">Radnica se prijavljuje svojim emailom i lozinkom i vidi samo Termine i Klijentice. Nalog joj napravi u Supabase → Authentication → Users → <b>Add user</b> (email, lozinka, uključi „Auto Confirm User“), pa ovdje upiši isti email i klikni Sačuvaj.</p>
+      <div id="stList"></div>
+      <div class="bar" style="margin-top:34px"><h2>Nagrade programa vjernosti</h2><button class="btn btn-gold" id="rwNew">+ Nova nagrada</button></div>
+      <div id="rwList"></div>
     </section>
 
     <section id="t-products" class="hide">
@@ -210,6 +290,36 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 </div>
 
 <!-- UREĐIVANJE PROIZVODA -->
+<datalist id="clDL"></datalist>
+<div class="md hide" id="apm"><div class="mdb">
+  <div class="mdh"><h3 id="apmT">Termin</h3><span class="stb" id="apmSt"></span><button class="x" id="apmX">×</button></div>
+  <div class="f"><label class="l">Klijentkinja</label><input id="apmClient" list="clDL" placeholder="Ime ili broj telefona" autocomplete="off"><div class="pt" id="apmPts"></div></div>
+  <div class="f hide" id="apmNewC"><div class="row2"><div><label class="l">Telefon nove klijentkinje</label><input id="apmPhone" placeholder="065 …"></div>
+    <label class="ck" style="margin-top:22px"><input type="checkbox" id="apmConsent"> Saglasna je s programom vjernosti</label></div></div>
+  <div class="f"><label class="l">Usluga</label><select id="apmSvc"></select></div>
+  <div class="row2"><div class="f"><label class="l">Radnica</label><select id="apmStaff"></select></div><div class="f"><label class="l">Datum</label><input type="date" id="apmDate"></div></div>
+  <div class="row3"><div class="f"><label class="l">Početak</label><input type="time" id="apmTime" step="900"></div><div class="f"><label class="l">Trajanje (min)</label><input type="number" id="apmMin" step="5"></div><div class="f"><label class="l">Cijena KM</label><input type="number" id="apmPrice" step="0.5"></div></div>
+  <div class="f"><label class="l">Napomena</label><input id="apmNote"></div>
+  <div class="warn hide" id="apmWarn"></div>
+  <div class="stbtns hide" id="apmStatus"><span>Status:</span><button class="btn s-ok" data-st="zavrsen">✓ Završen</button><button class="btn" data-st="nije_dosla">Nije došla</button><button class="btn" data-st="otkazan">Otkazan</button><button class="btn" data-st="zakazan">Vrati na zakazan</button></div>
+  <div class="mact"><button class="btn btn-red hide" id="apmDel">Obriši</button><a class="btn hide" id="apmRemind" target="_blank">Podsjetnik na Viber</a><span style="flex:1"></span><button class="btn" id="apmCancel">Odustani</button><button class="btn btn-gold" id="apmSave">Sačuvaj</button></div>
+</div></div>
+<div class="md hide" id="clm"><div class="mdb">
+  <div class="mdh"><h3 id="clmT">Klijentkinja</h3><button class="x" id="clmX">×</button></div>
+  <div class="row2"><div class="f"><label class="l">Ime i prezime</label><input id="clmName"></div><div class="f"><label class="l">Telefon</label><input id="clmPhone" placeholder="065 …"></div></div>
+  <div class="row2"><div class="f"><label class="l">Datum rođenja (neobavezno)</label><input type="date" id="clmBday"></div><label class="ck" style="margin-top:22px"><input type="checkbox" id="clmConsent"> Saglasna je s programom vjernosti</label></div>
+  <div class="f"><label class="l">Napomena</label><input id="clmNote"></div>
+  <div class="mact"><button class="btn btn-red hide" id="clmDel">Obriši</button><span style="flex:1"></span><button class="btn btn-gold" id="clmSave">Sačuvaj</button></div>
+  <div class="hide" id="clmPts">
+    <div class="balbox"><div><small>Stanje</small><b><span id="clmBal">0</span> bodova</b></div></div>
+    <label class="l">Iskoristi nagradu</label><div class="rwb" id="clmRw"></div>
+    <label class="l">Ručno dodaj ili oduzmi bodove</label>
+    <div class="row3b"><input type="number" id="clmDelta" placeholder="npr. 50 ili -50"><input id="clmWhy" placeholder="razlog (Preporuka, Rođendan…)"><button class="btn" id="clmAdd">Dodaj</button></div>
+    <label class="l">Lični link za bodove</label>
+    <div class="lnkbox"><code id="clmLink"></code><div><a class="btn" id="clmViber" target="_blank">Pošalji na Viber</a><a class="btn" id="clmWa" target="_blank" rel="noopener">WhatsApp</a><button class="btn" id="clmCopy">Kopiraj</button><button class="btn" id="clmNewTok">Novi link</button></div></div>
+    <label class="l">Istorija bodova</label><div class="hist" id="clmHist"></div>
+  </div>
+</div></div>
 <div class="cf hide" id="cf"><div class="cfb" role="alertdialog" aria-modal="true"><h4 id="cfT"></h4><p id="cfX"></p><div class="act"><button class="btn" id="cfNo">Odustani</button><button class="btn btn-danger" id="cfYes">Obriši</button></div></div></div>
 <div class="ed hide" id="ed"><div class="edp">
   <h3 id="edTitle">Proizvod</h3>
@@ -261,11 +371,18 @@ const STAT = ['nova', 'potvrđena', 'poslana', 'završena', 'otkazana'];
 async function boot() {
   const {data: {session}} = await sb.auth.getSession();
   if (!session) return showLogin();
-  const {data, error} = await sb.from('lax_admins').select('user_id').eq('user_id', session.user.id).maybeSingle();
-  if (error || !data) { await sb.auth.signOut(); return showLogin('Ovaj nalog nema admin pristup shopu.'); }
+  let who = null;
+  const w = await sb.rpc('lax_whoami');
+  if (!w.error && w.data) who = w.data;
+  else { // termini.sql još nije pokrenut
+    const {data} = await sb.from('lax_admins').select('user_id').eq('user_id', session.user.id).maybeSingle();
+    if (data) who = {admin: true, staff: null};
+  }
+  if (!who || (!who.admin && !who.staff)) { await sb.auth.signOut(); return showLogin('Ovaj nalog nema pristup adminu.'); }
   $('#who').textContent = session.user.email;
-  $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide'); pubStatus();
-  loadCategories().then(loadProducts); loadOrders(); loadServices(); loadTeam(); loadDelivery();
+  $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide');
+  if (who.admin) { pubStatus(); loadCategories().then(loadProducts); loadOrders(); loadServices(); loadTeam(); loadDelivery(); }
+  if (window.laxStaffInit) laxStaffInit(who);
 }
 function showLogin(msg) { $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); $('#loginMsg').textContent = msg || ''; }
 $('#loginForm').onsubmit = async e => {
@@ -280,7 +397,7 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); showLogin(); };
 $('#tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['orders', 'products', 'categories', 'services', 'team', 'delivery'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
+  ['orders', 'appts', 'clients', 'products', 'categories', 'services', 'team', 'delivery', 'staff'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
 };
 
 // ---------- narudžbe ----------
@@ -525,7 +642,7 @@ async function loadServices() {
 }
 function drawServices() {
   const cat = $('#svcCat').value, list = svcs.map((x, i) => ({x, i})).filter(o => o.x.category === cat);
-  $('#svcList').innerHTML = (list.length ? '<div class="svc-h"><span>Naziv</span><span>Opis</span><span>Min</span><span>Cijena KM</span><span>Od</span><span>Prikaži</span><span>Aktivna</span><span></span><span></span></div>' : '') +
+  $('#svcList').innerHTML = (list.length ? '<div class="svc-h"><span>Naziv</span><span>Opis</span><span>Min</span><span>Cijena KM</span><span>Od</span><span>Prikaži</span><span>Kabina</span><span>Aktivna</span><span></span><span></span></div>' : '') +
     (list.map(({x, i}) => `<div class="card svc ${x.active ? '' : 'off'}">
       <input data-s="${i}" data-k="name" value="${esc(x.name)}" placeholder="Naziv tretmana">
       <input data-s="${i}" data-k="description" value="${esc(x.description || '')}" placeholder="Opis (opcionalno)">
@@ -533,6 +650,7 @@ function drawServices() {
       <input data-s="${i}" data-k="price" type="number" step="0.01" value="${x.price ?? ''}" placeholder="KM">
       <label class="ck"><input type="checkbox" data-s="${i}" data-k="price_from" ${x.price_from ? 'checked' : ''}>od</label>
       <label class="ck"><input type="checkbox" data-s="${i}" data-k="show_price" ${x.show_price ? 'checked' : ''}>prikaži</label>
+      <label class="ck" title="Usluga zauzima kabinu (plan termina)"><input type="checkbox" data-s="${i}" data-k="needs_cabin" ${x.needs_cabin ? 'checked' : ''}>kabina</label>
       <label class="ck"><input type="checkbox" data-s="${i}" data-k="active" ${x.active ? 'checked' : ''}>aktivna</label>
       <button class="btn btn-gold" data-ss="${i}" style="padding:8px 10px">Sačuvaj</button>
       <button class="btn btn-red" data-sx="${i}" style="padding:8px 12px">×</button></div>`).join('') ||
@@ -559,7 +677,7 @@ $('#svcList').addEventListener('click', async e => {
   const sv = e.target.closest('[data-ss]'), dx = e.target.closest('[data-sx]');
   if (sv) {
     const x = svcs[+sv.dataset.ss]; if (!x.name.trim()) return toast('Upiši naziv');
-    const r = {category: x.category, name: x.name.trim(), description: (x.description || '').trim() || null, duration_min: x.duration_min, price: x.price, price_from: x.price_from, show_price: x.show_price, active: x.active, sort: x.sort ?? 0};
+    const r = {category: x.category, name: x.name.trim(), description: (x.description || '').trim() || null, duration_min: x.duration_min, price: x.price, price_from: x.price_from, show_price: x.show_price, active: x.active, sort: x.sort ?? 0, ...('needs_cabin' in x ? {needs_cabin: !!x.needs_cabin} : {})};
     const res = x.id ? await sb.from('lax_services').update(r).eq('id', x.id).select().single() : await sb.from('lax_services').insert(r).select().single();
     if (res.error) return toast('Greška: ' + res.error.message);
     svcs[+sv.dataset.ss] = res.data; drawServices(); toast('Sačuvano');
@@ -651,7 +769,7 @@ $('#dlist').addEventListener('click', async e => {
 $('#newDel').onclick = () => { dels.push({name: 'Nova dostava', description: '', price: 0, needs_address: true, active: true, sort: dels.length + 1}); drawDel(); };
 
 // nove narudžbe: osvježi svake minute
-setInterval(() => { if (!$('#appView').classList.contains('hide')) loadOrders(); }, 60000);
+setInterval(() => { if (!$('#appView').classList.contains('hide') && !$('#pub').classList.contains('hide')) loadOrders(); }, 60000);
 // ---------- objava ----------
 const fdt = t => new Date(t).toLocaleString('bs-BA', {day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'});
 let PUB = null;
@@ -676,8 +794,9 @@ $('#pubBtn').onclick = async () => {
   if (error) return toast0('Greška: ' + error.message);
   toast0('Objavljeno na sajtu ✓'); pubStatus();
 };
-setInterval(() => { if (!$('#appView').classList.contains('hide')) pubStatus(); }, 20000);
+setInterval(() => { if (!$('#appView').classList.contains('hide') && !$('#pub').classList.contains('hide')) pubStatus(); }, 20000);
 boot();
 </script>
+<script src="/admin-termini.js"></script>
 </body>
 </html>
