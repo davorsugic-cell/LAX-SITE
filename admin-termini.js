@@ -24,7 +24,9 @@
   function dayDate(i) { const d = new Date(weekStart); d.setDate(d.getDate() + i - 1); return d; }
 
   // ---------- init (poziva boot) ----------
+  let INITED = false;
   window.laxStaffInit = async function (who) {
+    if (INITED) return; INITED = true;
     WHO = who;
     if (!who.admin) {
       document.querySelectorAll('#tabs .adm').forEach(b => b.classList.add('hide'));
@@ -367,6 +369,9 @@
     }
   });
   $('#rwNew').onclick = () => { rewards.push({name: '', points: null, active: true}); drawStaffAdmin(); };
+
+  // admin.html je možda već završio prijavu prije nego što se ovaj fajl učitao
+  if (window.LAX_WHO) window.laxStaffInit(window.LAX_WHO);
 
   // osvježi plan svake minute (druga radnica je možda nešto upisala)
   setInterval(() => { if (READY && !$('#t-appts').classList.contains('hide') && $('#apm').classList.contains('hide')) loadWeek(); }, 60000);

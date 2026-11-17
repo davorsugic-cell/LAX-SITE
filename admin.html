@@ -382,7 +382,7 @@ async function boot() {
   $('#who').textContent = session.user.email;
   $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide');
   if (who.admin) { pubStatus(); loadCategories().then(loadProducts); loadOrders(); loadServices(); loadTeam(); loadDelivery(); }
-  if (window.laxStaffInit) laxStaffInit(who);
+  window.LAX_WHO = who; if (window.laxStaffInit) laxStaffInit(who);
 }
 function showLogin(msg) { $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); $('#loginMsg').textContent = msg || ''; }
 $('#loginForm').onsubmit = async e => {
@@ -392,7 +392,7 @@ $('#loginForm').onsubmit = async e => {
   if (error) return $('#loginMsg').textContent = 'Pogrešan email ili lozinka.';
   boot();
 };
-$('#logout').onclick = async () => { await sb.auth.signOut(); showLogin(); };
+$('#logout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 
 $('#tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
