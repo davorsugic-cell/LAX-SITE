@@ -17,7 +17,7 @@
 
   let WHO = {admin: false, staff: null}, READY = false;
   let staff = [], services = [], clients = [], rewards = [], appts = [];
-  let weekStart = monday(new Date()), day = todayIdx();
+  let weekStart = monday(new Date()), day = todayIdx(), DAYH0 = 9;
 
   function monday(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); const w = (x.getDay() + 6) % 7; x.setDate(x.getDate() - w); return x; }
   function todayIdx() { const w = new Date().getDay(); return w === 0 ? 1 : w; } // 1..6
@@ -79,8 +79,25 @@
     drawDay();
   }
   function drawDay() {
-    const d = dayDate(day), [h0, h1] = HOURS[d.getDay()] || [9, 19], rows = (h1 - h0) * 2;
-    const st = staff.filter(s => s.active), list = appts.filter(a => dkey(a.s) === dkey(d));
+    const d = dayDate(day), st = staff.filter(s => s.active), list = appts.filter(a => dkey(a.s) === dkey(d));
+    // radno vrijeme dana, prošireno ako neki termin ispada van njega
+    let [h0, h1] = HOURS[d.getDay()] || [9, 19];
+    list.forEach(a => { h0 = Math.min(h0, a.s.getHours()); h1 = Math.max(h1, a.e.getHours() + (a.e.getMinutes() ? 1 : 0) + (dkey(a.e) !== dkey(d) ? 24 : 0)); });
+    h1 = Math.min(h1, 24); const rows = (h1 - h0) * 2;
+    DAYH0 = h0;
+    // termini koji se preklapaju kod iste radnice idu jedan pored drugog
+    const lane = {};
+    st.forEach(s => {
+      const L = list.filter(a => a.staff_id === s.id).sort((x, y) => x.s - y.s);
+      let grp = [], ends = [], gEnd = 0;
+      const flush = () => { grp.forEach(a => lane[a.id].n = ends.length); grp = []; ends = []; };
+      L.forEach(a => {
+        if (grp.length && a.s >= gEnd) flush();
+        let k = ends.findIndex(e => e <= a.s); if (k < 0) { k = ends.length; ends.push(0); }
+        ends[k] = a.e; lane[a.id] = {k}; grp.push(a); gEnd = Math.max(gEnd, +a.e);
+      });
+      flush();
+    });
     const top = t => ((t.getHours() - h0) * 60 + t.getMinutes()) / 30 * RH;
     let html = `<div class="apg" style="--n:${st.length};--rows:${rows}">
       <div class="aph"></div>${st.map(s => `<div class="aph"><span class="av">${esc(s.name[0] || '?')}</span>${esc(s.name)}<small>· ${list.filter(a => a.staff_id === s.id && a.status !== 'otkazan').length}</small></div>`).join('')}<div class="aph cabh">Kabine</div>
@@ -90,7 +107,8 @@
         Array.from({length: rows}, (_, i) => `<div class="apline ${i % 2 ? 'half' : ''}" style="top:${i * RH}px"></div>`).join('') +
         list.filter(a => a.staff_id === s.id).map(a => {
           const t = Math.max(0, top(a.s)), h = Math.max(22, top(a.e) - t), c = clients.find(x => x.id === a.client_id);
-          return `<div class="ap ${a.status}" data-ap="${a.id}" style="top:${t + 2}px;height:${h - 4}px">
+          const ln = lane[a.id] || {k: 0, n: 1}, w = 100 / ln.n;
+          return `<div class="ap ${a.status}" data-ap="${a.id}" style="top:${t + 2}px;height:${h - 4}px${ln.n > 1 ? `;left:calc(${ln.k * w}% + 3px);right:auto;width:calc(${w}% - 6px)` : ''}">
             <div class="t">${hm(a.s)} – ${hm(a.e)}</div><div class="u">${esc(a.service_name)}</div>
             <div class="k">${esc(c ? c.name : a.client_name || '')}${c ? ` · <span class="pts">♥ ${c.points}</span>` : ''}</div>
             <div class="tags" ${h < 80 ? 'style="top:6px;bottom:auto"' : ''}>${a.needs_cabin ? '<span class="cab">KABINA</span>' : ''}<span class="sts">${STN[a.status]}</span></div></div>`;
@@ -112,8 +130,9 @@
   }
   function staffBusy(staffId, s, e, excl) { return appts.some(a => a.staff_id === staffId && live(a) && a.id !== excl && a.s < e && a.e > s); }
   function nextFree(staffId, s, mins, cab, excl) {
-    const d = new Date(s), [, h1] = HOURS[d.getDay()] || [9, 19], end = new Date(d); end.setHours(h1, 0, 0, 0);
-    for (let t = new Date(s.getTime() + 15 * 60000); t.getTime() + mins * 60000 <= end.getTime(); t = new Date(t.getTime() + 15 * 60000)) {
+    const d = new Date(s), hh = HOURS[d.getDay()]; if (!hh) return null;
+    const end = new Date(d); end.setHours(hh[1], 0, 0, 0); const open = new Date(d); open.setHours(hh[0], 0, 0, 0);
+    for (let t = new Date(Math.max(s.getTime() + 15 * 60000, open.getTime())); t.getTime() + mins * 60000 <= end.getTime(); t = new Date(t.getTime() + 15 * 60000)) {
       const e = new Date(t.getTime() + mins * 60000);
       if (!staffBusy(staffId, t, e, excl) && (!cab || cabinMax(t, e, excl) < 2)) return t;
     }
@@ -129,7 +148,7 @@
     const a = e.target.closest('[data-ap]');
     if (a) return openAp(appts.find(x => x.id === a.dataset.ap));
     const col = e.target.closest('[data-staff]'); if (!col) return;
-    const d = dayDate(day), [h0] = HOURS[d.getDay()] || [9];
+    const d = dayDate(day), h0 = DAYH0;
     const y = e.clientY - col.getBoundingClientRect().top, m = Math.floor(y / RH * 30 / 15) * 15;
     d.setHours(h0, 0, 0, 0); d.setMinutes(m);
     openAp(null, {start: d, staff: col.dataset.staff});
@@ -204,6 +223,10 @@
         await reloadClients(); c = clients.find(x => x.id === r.data.id);
       }
       const start = startOverride || formStart(), mins = +$('#apmMin').value, svc = $('#apmSvc').value || null;
+      const hh = HOURS[start.getDay()], endT = new Date(start.getTime() + mins * 60000);
+      if (!hh) throw new Error('Nedjeljom salon ne radi');
+      if (start.getHours() < hh[0] || endT.getHours() * 60 + endT.getMinutes() > hh[1] * 60 || dkey(endT) !== dkey(start))
+        throw new Error(`Termin mora biti u radnom vremenu (${pad(hh[0])}:00 – ${pad(hh[1])}:00)`);
       if (!svc && !cur.service_name) throw new Error('Izaberi uslugu');
       const pr = $('#apmPrice').value === '' ? null : +$('#apmPrice').value;
       const {data, error} = await sb.rpc('lax_save_appointment', {p_id: cur.id, p_client: c ? c.id : null, p_staff: $('#apmStaff').value, p_service: svc,
@@ -217,7 +240,7 @@
         return;
       }
       toast(cur.id ? 'Termin izmijenjen' : 'Termin zakazan'); closeAp(); loadWeek();
-    } catch (err) { toast('Greška: ' + (err.message || err)); }
+    } catch (err) { $('#apmWarn').innerHTML = '<b>' + esc(err.message || err) + '</b>'; $('#apmWarn').classList.remove('hide'); }
     finally { btn.disabled = false; }
   }
   $('#apmStatus').addEventListener('click', async e => {

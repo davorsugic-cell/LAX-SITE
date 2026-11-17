@@ -123,6 +123,21 @@ create or replace view public.lax_client_balance with (security_invoker = true) 
          (select max(a.starts_at) from lax_appointments a where a.client_id = c.id and a.status = 'zavrsen') as last_visit
   from lax_clients c;
 
+-- radno vrijeme salona (pon–sri 12–19, čet–pet 9–16, sub 9–15, nedjelja zatvoreno)
+create or replace function public.lax_check_hours(p_starts timestamptz, p_ends timestamptz)
+returns void language plpgsql stable set search_path = public as $f$
+declare ls timestamp := p_starts at time zone 'Europe/Sarajevo'; le timestamp := p_ends at time zone 'Europe/Sarajevo';
+        dw int := extract(isodow from ls); o time; c time;
+begin
+  case when dw between 1 and 3 then o := '12:00'; c := '19:00';
+       when dw between 4 and 5 then o := '09:00'; c := '16:00';
+       when dw = 6 then o := '09:00'; c := '15:00';
+       else raise exception 'Nedjeljom salon ne radi'; end case;
+  if ls::date <> le::date or ls::time < o or le::time > c then
+    raise exception 'Termin mora biti u radnom vremenu (% – %)', to_char(o, 'HH24:MI'), to_char(c, 'HH24:MI');
+  end if;
+end $f$;
+
 -- spremi termin (novi ili izmjena) uz provjeru preklapanja i kabina
 create or replace function public.lax_save_appointment(
   p_id uuid, p_client uuid, p_staff uuid, p_service uuid, p_service_name text,
@@ -134,6 +149,7 @@ begin
   if p_minutes is null or p_minutes < 5 then raise exception 'Upiši trajanje termina'; end if;
   perform pg_advisory_xact_lock(hashtext('lax_appointments'));
   e := p_starts + make_interval(mins => p_minutes);
+  perform public.lax_check_hours(p_starts, e);
   if p_service is not null then select * into s from lax_services where id = p_service; end if;
   nm := coalesce(nullif(trim(p_service_name),''), s.name);
   if nm is null then raise exception 'Izaberi uslugu'; end if;
