@@ -45,9 +45,11 @@ header{background:var(--ink);color:#f3ebe1;position:sticky;top:0;z-index:20}
 .hdr .u{font-size:13px;color:#b8aa9a;display:flex;gap:12px;align-items:center}
 .hdr .u .btn{background:transparent;color:#f3ebe1;border-color:#5a4e44;padding:7px 14px}
 nav.tabs{display:flex;gap:6px;padding:16px 0;flex-wrap:wrap}
-nav.tabs button{padding:9px 18px;border-radius:30px;border:1px solid var(--line);background:transparent;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+nav.tabs button{padding:9px 15px;border-radius:30px;border:1px solid var(--line);background:transparent;font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 nav.tabs button.on{background:var(--ink);border-color:var(--ink);color:#fff}
-nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--gold);color:#fff;font-size:11px;margin-left:6px}
+nav.tabs .badge{display:inline-block;min-width:22px;padding:1px 7px;border-radius:12px;background:#d93636;color:#fff;font-size:11px;font-weight:600;letter-spacing:0;margin-left:7px;box-shadow:0 0 0 0 rgba(217,54,54,.6);animation:bdg 1.6s infinite}
+@keyframes bdg{0%{box-shadow:0 0 0 0 rgba(217,54,54,.55)}70%{box-shadow:0 0 0 8px rgba(217,54,54,0)}100%{box-shadow:0 0 0 0 rgba(217,54,54,0)}}
+nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 .bar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
 .bar h2{font-family:var(--serif);font-weight:500;font-size:30px}
 .bar select{width:auto}
@@ -213,9 +215,9 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
       <a class="btn" href="/shop?pregled=1" target="_blank" rel="noopener">Pregled shopa</a>
       <button class="btn btn-gold" id="pubBtn">Objavi izmjene</button></div>
     <nav class="tabs" id="tabs">
-      <button data-t="orders" class="on adm">Narudžbe<span class="badge hide" id="newN"></span></button>
-      <button data-t="appts">Termini</button>
-      <button data-t="clients">Klijentice</button>
+      <button data-t="appts" class="on">Termini</button>
+      <button data-t="orders" class="adm">Narudžbe<span class="badge hide" id="newN"></span></button>
+      <button data-t="clients">Klijenti</button>
       <button data-t="products" class="adm">Proizvodi</button>
       <button data-t="categories" class="adm">Kategorije</button>
       <button data-t="services" class="adm">Cjenovnik</button>
@@ -224,13 +226,13 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
       <button data-t="staff" class="adm">Radnice</button>
     </nav>
 
-    <section id="t-orders">
+    <section id="t-orders" class="hide">
       <div class="bar"><h2>Narudžbe</h2>
         <select id="ordFilter"><option value="">Sve</option><option selected>nova</option><option>potvrđena</option><option>poslana</option><option>završena</option><option>otkazana</option></select></div>
       <div id="orders"></div>
     </section>
 
-    <section id="t-appts" class="hide">
+    <section id="t-appts">
       <div class="bar"><h2>Plan termina</h2>
         <div class="wk"><button class="btn rd" id="apPrev">‹</button><b id="apWeek"></b><button class="btn rd" id="apNext">›</button><button class="btn" id="apToday">Danas</button></div>
         <button class="btn btn-gold" id="apNew">+ Novi termin</button></div>
@@ -241,14 +243,14 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
     </section>
 
     <section id="t-clients" class="hide">
-      <div class="bar"><h2>Klijentice</h2><button class="btn btn-gold" id="clNew">+ Nova klijentkinja</button></div>
+      <div class="bar"><h2>Klijenti</h2><button class="btn btn-gold" id="clNew">+ Novi klijent</button></div>
       <input id="clQ" placeholder="Traži po imenu ili broju telefona…" style="margin-bottom:14px;max-width:420px">
       <div id="clList"></div>
     </section>
 
     <section id="t-staff" class="hide">
       <div class="bar"><h2>Radnice</h2><button class="btn btn-gold" id="stNew">+ Nova radnica</button></div>
-      <p class="hint">Radnica se prijavljuje svojim emailom i lozinkom i vidi samo Termine i Klijentice. Nalog joj napravi u Supabase → Authentication → Users → <b>Add user</b> (email, lozinka, uključi „Auto Confirm User“), pa ovdje upiši isti email i klikni Sačuvaj.</p>
+      <p class="hint">Radnica se prijavljuje svojim emailom i lozinkom i vidi samo Termine i Klijente. Nalog joj napravi u Supabase → Authentication → Users → <b>Add user</b> (email, lozinka, uključi „Auto Confirm User“), pa ovdje upiši isti email i klikni Sačuvaj.</p>
       <div id="stList"></div>
       <div class="bar" style="margin-top:34px"><h2>Nagrade programa vjernosti</h2><button class="btn btn-gold" id="rwNew">+ Nova nagrada</button></div>
       <div id="rwList"></div>
@@ -294,9 +296,9 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 <datalist id="clDL"></datalist>
 <div class="md hide" id="apm"><div class="mdb">
   <div class="mdh"><h3 id="apmT">Termin</h3><span class="stb" id="apmSt"></span><button class="x" id="apmX">×</button></div>
-  <div class="f"><label class="l">Klijentkinja</label><input id="apmClient" list="clDL" placeholder="Ime ili broj telefona" autocomplete="off"><div class="pt" id="apmPts"></div></div>
-  <div class="f hide" id="apmNewC"><div class="row2"><div><label class="l">Telefon nove klijentkinje</label><input id="apmPhone" placeholder="065 …"></div>
-    <label class="ck" style="margin-top:22px"><input type="checkbox" id="apmConsent"> Saglasna je s programom vjernosti</label></div></div>
+  <div class="f"><label class="l">Klijent</label><input id="apmClient" list="clDL" placeholder="Ime ili broj telefona" autocomplete="off"><div class="pt" id="apmPts"></div></div>
+  <div class="f hide" id="apmNewC"><div class="row2"><div><label class="l">Telefon novog klijenta</label><input id="apmPhone" placeholder="065 …"></div>
+    <label class="ck" style="margin-top:22px"><input type="checkbox" id="apmConsent"> Saglasnost za program vjernosti</label></div></div>
   <div class="f"><label class="l">Usluga</label><select id="apmSvc"></select></div>
   <div class="row2"><div class="f"><label class="l">Radnica</label><select id="apmStaff"></select></div><div class="f"><label class="l">Datum</label><input type="date" id="apmDate"></div></div>
   <div class="row3"><div class="f"><label class="l">Početak</label><input type="time" id="apmTime" step="900"></div><div class="f"><label class="l">Trajanje (min)</label><input type="number" id="apmMin" step="5"></div><div class="f"><label class="l">Cijena KM</label><input type="number" id="apmPrice" step="0.5"></div></div>
@@ -306,9 +308,9 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
   <div class="mact"><button class="btn btn-red hide" id="apmDel">Obriši</button><span class="hide rmd" id="apmRemind">Podsjetnik: <a class="btn" id="apmRV" target="_blank">Viber</a><a class="btn" id="apmRW" target="_blank" rel="noopener">WhatsApp</a><a class="btn" id="apmRS">SMS</a></span><span style="flex:1"></span><button class="btn" id="apmCancel">Odustani</button><button class="btn btn-gold" id="apmSave">Sačuvaj</button></div>
 </div></div>
 <div class="md hide" id="clm"><div class="mdb">
-  <div class="mdh"><h3 id="clmT">Klijentkinja</h3><button class="x" id="clmX">×</button></div>
+  <div class="mdh"><h3 id="clmT">Klijent</h3><button class="x" id="clmX">×</button></div>
   <div class="row2"><div class="f"><label class="l">Ime i prezime</label><input id="clmName"></div><div class="f"><label class="l">Telefon</label><input id="clmPhone" placeholder="065 …"></div></div>
-  <div class="row2"><div class="f"><label class="l">Datum rođenja (neobavezno)</label><input type="date" id="clmBday"></div><label class="ck" style="margin-top:22px"><input type="checkbox" id="clmConsent"> Saglasna je s programom vjernosti</label></div>
+  <div class="row2"><div class="f"><label class="l">Datum rođenja (neobavezno)</label><input type="date" id="clmBday"></div><label class="ck" style="margin-top:22px"><input type="checkbox" id="clmConsent"> Saglasnost za program vjernosti</label></div>
   <div class="f"><label class="l">Napomena</label><input id="clmNote"></div>
   <div class="mact"><button class="btn btn-red hide" id="clmDel">Obriši</button><span style="flex:1"></span><button class="btn btn-gold" id="clmSave">Sačuvaj</button></div>
   <div class="hide" id="clmPts">
@@ -411,7 +413,7 @@ async function loadOrders() {
 function drawOrders() {
   const f = $('#ordFilter').value, list = orders.filter(o => !f || o.status === f);
   const nn = orders.filter(o => o.status === 'nova').length;
-  $('#newN').textContent = nn; $('#newN').classList.toggle('hide', !nn);
+  $('#newN').textContent = nn + ' ' + (nn % 10 === 1 && nn % 100 !== 11 ? 'nova' : nn % 10 >= 2 && nn % 10 <= 4 && (nn % 100 < 12 || nn % 100 > 14) ? 'nove' : 'novih'); $('#newN').classList.toggle('hide', !nn); $('#newN').closest('button').classList.toggle('hasnew', !!nn);
   if (!list.length) return $('#orders').innerHTML = '<div class="card" style="text-align:center;color:var(--muted)">' + (f === 'nova' ? 'Nema novih narudžbi. Za starije izaberi \u201eSve\u201c gore desno.' : 'Nema narudžbi.') + '</div>';
   $('#orders').innerHTML = list.map(o => {
     const tel = o.phone.replace(/[^\d+]/g, ''), intl = tel.startsWith('+') ? tel.slice(1) : tel.startsWith('0') ? '387' + tel.slice(1) : tel;

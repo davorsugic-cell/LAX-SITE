@@ -1,4 +1,4 @@
-/* LAX admin — plan termina, klijentice, bodovi, radnice */
+/* LAX admin — plan termina, klijenti, bodovi, radnice */
 (function () {
   const HOURS = {1: [12, 19], 2: [12, 19], 3: [12, 19], 4: [9, 16], 5: [9, 16], 6: [9, 15]};
   const DN = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub'];
@@ -191,7 +191,7 @@
     if (c) {
       const can = rewards.filter(r => r.active && r.points <= c.points).pop();
       $('#apmPts').innerHTML = `♥ ${c.points} bodova` + (can ? ` — može iskoristiti: ${esc(can.name)}` : '');
-    } else $('#apmPts').textContent = v ? 'Nova klijentkinja — upiši telefon ispod.' : '';
+    } else $('#apmPts').textContent = v ? 'Novi klijent — upiši telefon ispod.' : '';
   }
   function remindLink() {
     const c = clients.find(x => x.id === cur.client_id), b = $('#apmRemind');
@@ -253,7 +253,7 @@
   });
   $('#apmDel').onclick = async () => {
     if (!cur.id) return;
-    if (!await askConfirm('Obrisati termin?', 'Termin se trajno briše iz plana, zajedno s bodovima koje je donio. Ako klijentkinja samo nije došla ili je otkazala, radije promijeni status.')) return;
+    if (!await askConfirm('Obrisati termin?', 'Termin se trajno briše iz plana, zajedno s bodovima koje je donio. Ako klijent samo nije došao ili je otkazala, radije promijeni status.')) return;
     const {error} = await sb.from('lax_appointments').delete().eq('id', cur.id);
     if (error) return toast('Greška: ' + error.message);
     await sb.from('lax_points').delete().eq('appointment_id', cur.id);
@@ -269,7 +269,7 @@
     const q = ($('#clQ').value || '').trim().toLowerCase(), L = clients.filter(c => !q || c.name.toLowerCase().includes(q) || (c.phone || '').replace(/\D/g, '').includes(q.replace(/\D/g, '') || '§'));
     $('#clList').innerHTML = L.length ? `<div class="clh"><span>Ime</span><span>Telefon</span><span>Bodovi</span><span>Zadnja posjeta</span><span></span></div>` + L.map(c => `<div class="card clrow" data-cl="${c.id}">
       <b>${esc(c.name)}</b><span>${esc(c.phone || '—')}</span><span class="pts">♥ ${c.points}</span><span>${c.last_visit ? dmy(c.last_visit) : '—'}</span><button class="btn">Otvori</button></div>`).join('')
-      : '<div class="card" style="text-align:center;color:var(--muted)">' + (clients.length ? 'Nema rezultata.' : 'Još nema klijentica. Dodaju se ovdje ili automatski pri zakazivanju termina.') + '</div>';
+      : '<div class="card" style="text-align:center;color:var(--muted)">' + (clients.length ? 'Nema rezultata.' : 'Još nema klijenata. Dodaju se ovdje ili automatski pri zakazivanju termina.') + '</div>';
   }
   $('#clQ').addEventListener('input', drawClients);
   $('#clList').addEventListener('click', e => { const r = e.target.closest('[data-cl]'); if (r) openCl(clients.find(c => c.id === r.dataset.cl)); });
@@ -278,7 +278,7 @@
   let cc = null;
   async function openCl(c) {
     cc = c ? {...c} : {id: null, name: '', phone: '', birthday: null, consent: false, note: ''};
-    $('#clmT').textContent = c ? c.name : 'Nova klijentkinja';
+    $('#clmT').textContent = c ? c.name : 'Novi klijent';
     $('#clmName').value = cc.name; $('#clmPhone').value = cc.phone || ''; $('#clmBday').value = cc.birthday || '';
     $('#clmConsent').checked = !!cc.consent; $('#clmNote').value = cc.note || '';
     $('#clmPts').classList.toggle('hide', !c); $('#clmDel').classList.toggle('hide', !c || !WHO.admin);
@@ -289,7 +289,7 @@
     const c = clients.find(x => x.id === cc.id) || cc;
     $('#clmBal').textContent = c.points;
     $('#clmRw').innerHTML = rewards.filter(r => r.active).map(r => `<button class="btn ${r.points <= c.points ? 'btn-gold' : ''}" data-rw="${r.id}" ${r.points <= c.points ? '' : 'disabled'}>${esc(r.name)} · ${r.points}</button>`).join('') || '<small>Nema nagrada.</small>';
-    const url = cardUrl(c), msg = `Ćao ${first(c.name)}! 💛 Dobrodošla u LAX program vjernosti. Svoje bodove i nagrade možeš pratiti ovdje: ${url}`;
+    const url = cardUrl(c), msg = `Ćao ${first(c.name)}! 💛 Dobrodošli u LAX program vjernosti. Svoje bodove i nagrade možeš pratiti ovdje: ${url}`;
     $('#clmLink').textContent = url;
     $('#clmViber').href = c.phone ? 'viber://chat?number=%2B' + intl(c.phone) + '&draft=' + encodeURIComponent(msg) : '#';
     $('#clmWa').href = c.phone ? 'https://wa.me/' + intl(c.phone) + '?text=' + encodeURIComponent(msg) : '#';
@@ -305,7 +305,7 @@
     if (!row.name) return toast('Upiši ime');
     const r = cc.id ? await sb.from('lax_clients').update(row).eq('id', cc.id).select().single() : await sb.from('lax_clients').insert(row).select().single();
     if (r.error) return toast('Greška: ' + r.error.message);
-    toast(cc.id ? 'Klijentkinja sačuvana' : 'Klijentkinja dodana (+20 bodova)');
+    toast(cc.id ? 'Klijent sačuvan' : 'Klijent dodan (+20 bodova)');
     await reloadClients(); const c = clients.find(x => x.id === r.data.id); openCl(c); drawDay();
   };
   $('#clmRw').addEventListener('click', async e => {
@@ -326,17 +326,17 @@
   };
   $('#clmCopy').onclick = () => { navigator.clipboard.writeText($('#clmLink').textContent).then(() => toast('Link kopiran')); };
   $('#clmNewTok').onclick = async () => {
-    if (!await askConfirm('Napraviti novi link?', 'Stari link prestaje raditi. Klijentkinji treba poslati novi.', 'Novi link', false)) return;
+    if (!await askConfirm('Napraviti novi link?', 'Stari link prestaje raditi. Klijentu treba poslati novi.', 'Novi link', false)) return;
     const tok = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2, '0')).join('');
     const {error} = await sb.from('lax_clients').update({token: tok}).eq('id', cc.id);
     if (error) return toast('Greška: ' + error.message);
     await reloadClients(); drawClPts(); toast('Novi link napravljen');
   };
   $('#clmDel').onclick = async () => {
-    if (!await askConfirm('Obrisati klijentkinju?', `${cc.name} i svi njeni bodovi se trajno brišu. Termini ostaju u planu, bez veze s klijentkinjom.`)) return;
+    if (!await askConfirm('Obrisati klijenta?', `${cc.name} i svi bodovi se trajno brišu. Termini ostaju u planu, bez veze s klijentom.`)) return;
     const {error} = await sb.from('lax_clients').delete().eq('id', cc.id);
     if (error) return toast('Greška: ' + error.message);
-    toast('Klijentkinja obrisana'); closeCl(); await reloadClients(); drawDay();
+    toast('Klijent obrisan'); closeCl(); await reloadClients(); drawDay();
   };
 
   // =========================================================
