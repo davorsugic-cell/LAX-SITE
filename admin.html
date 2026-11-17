@@ -139,6 +139,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
 .c0{background:#f6f1ea;color:#c4b5a4}.c1{background:#f5e3c4;color:#7a5410}.c2{background:#f3dddc;color:var(--red)}
 .leg{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin:12px 4px 4px}.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .lz{background:#fbf3e6;border-left:3px solid var(--gold)}.lv{background:#eef5ef;border-left:3px solid var(--green)}.ln{background:#faeeed;border-left:3px solid var(--red)}.lk2{background:#2b2420}.lc{background:#f3dddc}
+.rmd{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);order:-1;width:100%;margin-bottom:4px}.rmd .btn{padding:7px 12px;font-size:12px}
 .md a.btn,.lnkbox a.btn{color:var(--ink);text-decoration:none}
 .hint{font-size:13px;color:var(--muted);margin:6px 4px 14px;line-height:1.5}
 .md{position:fixed;inset:0;background:rgba(43,36,32,.5);z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
@@ -302,7 +303,7 @@ nav.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:
   <div class="f"><label class="l">Napomena</label><input id="apmNote"></div>
   <div class="warn hide" id="apmWarn"></div>
   <div class="stbtns hide" id="apmStatus"><span>Status:</span><button class="btn s-ok" data-st="zavrsen">✓ Završen</button><button class="btn" data-st="nije_dosla">Nije došla</button><button class="btn" data-st="otkazan">Otkazan</button><button class="btn" data-st="zakazan">Vrati na zakazan</button></div>
-  <div class="mact"><button class="btn btn-red hide" id="apmDel">Obriši</button><a class="btn hide" id="apmRemind" target="_blank">Podsjetnik na Viber</a><span style="flex:1"></span><button class="btn" id="apmCancel">Odustani</button><button class="btn btn-gold" id="apmSave">Sačuvaj</button></div>
+  <div class="mact"><button class="btn btn-red hide" id="apmDel">Obriši</button><span class="hide rmd" id="apmRemind">Podsjetnik: <a class="btn" id="apmRV" target="_blank">Viber</a><a class="btn" id="apmRW" target="_blank" rel="noopener">WhatsApp</a><a class="btn" id="apmRS">SMS</a></span><span style="flex:1"></span><button class="btn" id="apmCancel">Odustani</button><button class="btn btn-gold" id="apmSave">Sačuvaj</button></div>
 </div></div>
 <div class="md hide" id="clm"><div class="mdb">
   <div class="mdh"><h3 id="clmT">Klijentkinja</h3><button class="x" id="clmX">×</button></div>

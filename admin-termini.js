@@ -178,7 +178,10 @@
     const c = clients.find(x => x.id === cur.client_id), b = $('#apmRemind');
     if (!cur.id || !c || !c.phone || cur.status !== 'zakazan') return b.classList.add('hide');
     const msg = `Ćao ${first(c.name)}! Podsjećamo te na termin u LAX Studiju ${DN[cur.s.getDay()].toLowerCase()} ${ddmm(cur.s)} u ${hm(cur.s)} (${cur.service_name}). Vidimo se! 💛`;
-    b.href = 'viber://chat?number=%2B' + intl(c.phone) + '&draft=' + encodeURIComponent(msg);
+    const n = intl(c.phone), t = encodeURIComponent(msg);
+    $('#apmRV').href = 'viber://chat?number=%2B' + n + '&draft=' + t;
+    $('#apmRW').href = 'https://wa.me/' + n + '?text=' + t;
+    $('#apmRS').href = 'sms:+' + n + '?&body=' + t;
     b.classList.remove('hide');
   }
   $('#apmClient').addEventListener('input', clientInfo);
