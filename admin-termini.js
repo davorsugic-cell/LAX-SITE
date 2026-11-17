@@ -11,7 +11,7 @@
   const dkey = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
   const ddmm = d => d.getDate() + '.' + (d.getMonth() + 1) + '.';
   const intl = p => { const t = String(p || '').replace(/[^\d+]/g, ''); return t.startsWith('+') ? t.slice(1) : t.startsWith('00') ? t.slice(2) : t.startsWith('0') ? '387' + t.slice(1) : t; };
-  const cardUrl = c => location.origin + '/bodovi#' + c.token;
+  const cardUrl = c => location.origin + '/bodovi?k=' + c.token; // bez # jer ga Viber odsiječe
   const first = n => String(n || '').split(' ')[0];
   const dmy = v => { const d = new Date(v); return d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + '.'; };
 

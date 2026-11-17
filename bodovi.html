@@ -43,7 +43,7 @@ a{color:inherit}
 (async function () {
   const C = window.LAX_CONFIG || {}, el = document.getElementById('app');
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const tok = (location.hash || '').replace('#', '').trim();
+  const tok = (new URLSearchParams(location.search).get('k') || (location.hash || '').replace('#', '')).trim();
   const bad = () => el.innerHTML = 'Ovaj link nije ispravan ili je zamijenjen novim.<br>Javi nam se na Viber i poslaćemo ti tvoj link.<br><a class="btn" href="#" data-book>Kontaktirajte nas</a>';
   if (tok.length < 10) return bad();
   const sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
@@ -52,7 +52,7 @@ a{color:inherit}
   const p = Math.max(0, data.points), R = data.rewards || [];
   const nx = R.find(r => r.points > p), prev = [...R].reverse().find(r => r.points <= p);
   const pct = nx ? Math.round(p / nx.points * 100) : 100;
-  const vd = data.valid_until ? new Date(data.valid_until) : null, vu = vd ? vd.getDate() + '.' + (vd.getMonth() + 1) + '.' + vd.getFullYear() + '.' : '';
+  const vd = data.valid_until ? new Date(data.valid_until) : null, vu = vd ? vd.getDate() + '.' + (vd.getMonth() + 1) + '.' + vd.getFullYear() : '';
   el.className = ''; el.style.width = '100%'; el.style.display = 'flex'; el.style.flexDirection = 'column'; el.style.alignItems = 'center';
   el.innerHTML = `<div class="card">
       <p class="hi">Ćao, ${esc(data.name)}</p><div class="sub">Tvoji bodovi</div>
