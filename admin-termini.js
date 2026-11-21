@@ -19,15 +19,22 @@
     <div class="mdh"><h3 id="sndT"></h3><button class="x" id="sndX">×</button></div>
     <div id="sndMsg" style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.5;white-space:pre-wrap;margin-bottom:14px"></div>
     <div class="rmd" style="order:0">Pošalji: <a class="btn" id="sndV" target="_blank">Viber</a><a class="btn" id="sndW" target="_blank" rel="noopener">WhatsApp</a><a class="btn" id="sndS">SMS</a></div>
-    <div class="mact"><span style="flex:1"></span><button class="btn btn-gold" id="sndOk">Gotovo</button></div></div></div>`);
-  const closeSnd = () => $('#snd').classList.add('hide');
+    <div class="mact"><small id="sndHint" style="flex:1;color:var(--muted);font-size:12.5px"></small><button class="btn btn-gold" id="sndOk">Gotovo</button></div></div></div>`);
+  let sndLocked = false;
+  const closeSnd = () => { if (sndLocked) return; $('#snd').classList.add('hide'); };
   $('#sndX').onclick = closeSnd; $('#sndOk').onclick = closeSnd;
   $('#snd').addEventListener('click', e => { if (e.target.id === 'snd') closeSnd(); });
-  function offerSend(title, c, msg) {
+  ['#sndV', '#sndW', '#sndS'].forEach(id => $(id).addEventListener('click', () => {
+    sndLocked = false; $('#sndOk').disabled = false; $('#sndX').classList.remove('hide'); $('#sndHint').textContent = '';
+  }));
+  // required = prozor se ne može zatvoriti dok se ne klikne Viber, WhatsApp ili SMS
+  function offerSend(title, c, msg, required) {
     if (!c || !c.phone) return;
     const L = sendLinks(c.phone, msg);
     $('#sndT').textContent = title; $('#sndMsg').textContent = msg;
     $('#sndV').href = L.v; $('#sndW').href = L.w; $('#sndS').href = L.s;
+    sndLocked = !!required; $('#sndOk').disabled = sndLocked; $('#sndX').classList.toggle('hide', sndLocked);
+    $('#sndHint').textContent = sndLocked ? 'Pošalji poruku da bi zatvorio prozor.' : '';
     $('#snd').classList.remove('hide');
   }
   const first = n => String(n || '').split(' ')[0];
@@ -257,7 +264,7 @@
         return;
       }
       toast(cur.id ? 'Termin izmijenjen' : 'Termin zakazan'); closeAp(); loadWeek();
-      if (pendingWelcome && c && c.id === pendingWelcome) { pendingWelcome = null; offerSend('Novi klijent — pošalji link dobrodošlice', c, welcomeMsg(c)); }
+      if (pendingWelcome && c && c.id === pendingWelcome) { pendingWelcome = null; offerSend('Novi klijent — pošalji link dobrodošlice', c, welcomeMsg(c), true); }
     } catch (err) { $('#apmWarn').innerHTML = '<b>' + esc(err.message || err) + '</b>'; $('#apmWarn').classList.remove('hide'); }
     finally { btn.disabled = false; }
   }
@@ -270,7 +277,7 @@
     const done = cur; closeAp(); await reloadClients(); loadWeek();
     const c = clients.find(x => x.id === done.client_id);
     if (b.dataset.st === 'zavrsen' && data.points > 0 && c && c.phone)
-      offerSend('Pošalji bodove klijentu', c, `Hvala ${first(c.name)}! 💛 Za današnji tretman dobijaš +${data.points} bodova${data.double ? ' (dopuna na vrijeme ×2)' : ''}. Sada imaš ${c.points} bodova.\n\nSvoje bodove i nagrade vidiš ovdje: ${cardUrl(c)}`);
+      offerSend('Pošalji bodove klijentu', c, `Hvala ${first(c.name)}! 💛 Za današnji tretman dobijaš +${data.points} bodova${data.double ? ' (dopuna na vrijeme ×2)' : ''}. Sada imaš ${c.points} bodova.\n\nSvoje bodove i nagrade vidiš ovdje: ${cardUrl(c)}`, true);
   });
   $('#apmDel').onclick = async () => {
     if (!cur.id) return;
@@ -329,7 +336,7 @@
     toast(cc.id ? 'Klijent sačuvan' : 'Klijent dodan (+20 bodova)');
     const wasNew = !cc.id;
     await reloadClients(); const c = clients.find(x => x.id === r.data.id); openCl(c); drawDay();
-    if (wasNew && c && c.phone) offerSend('Pošalji link dobrodošlice', c, welcomeMsg(c));
+    if (wasNew && c && c.phone) offerSend('Pošalji link dobrodošlice', c, welcomeMsg(c), true);
   };
   $('#clmRw').addEventListener('click', async e => {
     const b = e.target.closest('[data-rw]'); if (!b) return; const r = rewards.find(x => x.id === b.dataset.rw);
