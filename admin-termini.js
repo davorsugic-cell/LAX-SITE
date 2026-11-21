@@ -12,6 +12,24 @@
   const ddmm = d => d.getDate() + '.' + (d.getMonth() + 1) + '.';
   const intl = p => { const t = String(p || '').replace(/[^\d+]/g, ''); return t.startsWith('+') ? t.slice(1) : t.startsWith('00') ? t.slice(2) : t.startsWith('0') ? '387' + t.slice(1) : t; };
   const cardUrl = c => location.origin + '/bodovi?k=' + c.token; // bez # jer ga Viber odsiječe
+  const welcomeMsg = c => `Ćao ${first(c.name)}! 💛 Dobrodošli u LAX program vjernosti. Svoje bodove i nagrade možeš pratiti ovdje: ${cardUrl(c)}`;
+  const sendLinks = (phone, msg) => { const n = intl(phone), t = encodeURIComponent(msg); return {v: 'viber://chat?number=%2B' + n + '&draft=' + t, w: 'https://wa.me/' + n + '?text=' + t, s: 'sms:+' + n + '?&body=' + t}; };
+  // prozor "pošalji poruku" (bodovi / dobrodošlica)
+  document.body.insertAdjacentHTML('beforeend', `<div class="md hide" id="snd"><div class="mdb" style="max-width:480px">
+    <div class="mdh"><h3 id="sndT"></h3><button class="x" id="sndX">×</button></div>
+    <div id="sndMsg" style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.5;white-space:pre-wrap;margin-bottom:14px"></div>
+    <div class="rmd" style="order:0">Pošalji: <a class="btn" id="sndV" target="_blank">Viber</a><a class="btn" id="sndW" target="_blank" rel="noopener">WhatsApp</a><a class="btn" id="sndS">SMS</a></div>
+    <div class="mact"><span style="flex:1"></span><button class="btn btn-gold" id="sndOk">Gotovo</button></div></div></div>`);
+  const closeSnd = () => $('#snd').classList.add('hide');
+  $('#sndX').onclick = closeSnd; $('#sndOk').onclick = closeSnd;
+  $('#snd').addEventListener('click', e => { if (e.target.id === 'snd') closeSnd(); });
+  function offerSend(title, c, msg) {
+    if (!c || !c.phone) return;
+    const L = sendLinks(c.phone, msg);
+    $('#sndT').textContent = title; $('#sndMsg').textContent = msg;
+    $('#sndV').href = L.v; $('#sndW').href = L.w; $('#sndS').href = L.s;
+    $('#snd').classList.remove('hide');
+  }
   const first = n => String(n || '').split(' ')[0];
   const dmy = v => { const d = new Date(v); return d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + '.'; };
 
@@ -155,7 +173,7 @@
   });
 
   // ---------- prozor termina ----------
-  let cur = null;
+  let cur = null, pendingWelcome = null;
   function svcOptions(sel) {
     const g = {}; services.filter(s => s.active || s.id === sel).forEach(s => (g[s.category] = g[s.category] || []).push(s));
     const cur0 = cur && !sel && cur.service_name ? `<option value="" selected>${esc(cur.service_name)}</option>` : '<option value="">— izaberi uslugu —</option>';
@@ -196,11 +214,10 @@
   function remindLink() {
     const c = clients.find(x => x.id === cur.client_id), b = $('#apmRemind');
     if (!cur.id || !c || !c.phone || cur.status !== 'zakazan') return b.classList.add('hide');
-    const msg = `Ćao ${first(c.name)}! Podsjećamo te na termin u LAX Studiju ${DN[cur.s.getDay()].toLowerCase()} ${ddmm(cur.s)} u ${hm(cur.s)} (${cur.service_name}). Vidimo se! 💛`;
-    const n = intl(c.phone), t = encodeURIComponent(msg);
-    $('#apmRV').href = 'viber://chat?number=%2B' + n + '&draft=' + t;
-    $('#apmRW').href = 'https://wa.me/' + n + '?text=' + t;
-    $('#apmRS').href = 'sms:+' + n + '?&body=' + t;
+    const msg = `Ćao ${first(c.name)}! Podsjećamo te na termin u LAX Studiju ${DN[cur.s.getDay()].toLowerCase()} ${ddmm(cur.s)} u ${hm(cur.s)} (${cur.service_name}). Vidimo se! 💛` +
+      (c.token ? `\n\nTvoji bodovi (${c.points}): ${cardUrl(c)}` : '');
+    const L = sendLinks(c.phone, msg);
+    $('#apmRV').href = L.v; $('#apmRW').href = L.w; $('#apmRS').href = L.s;
     b.classList.remove('hide');
   }
   $('#apmClient').addEventListener('input', clientInfo);
@@ -220,7 +237,7 @@
         const ph = $('#apmPhone').value.trim();
         const r = await sb.from('lax_clients').insert({name: nm.split(' · ')[0], phone: ph || null, consent: $('#apmConsent').checked}).select().single();
         if (r.error) throw r.error;
-        await reloadClients(); c = clients.find(x => x.id === r.data.id);
+        await reloadClients(); c = clients.find(x => x.id === r.data.id); pendingWelcome = c && c.id;
       }
       const start = startOverride || formStart(), mins = +$('#apmMin').value, svc = $('#apmSvc').value || null;
       const hh = HOURS[start.getDay()], endT = new Date(start.getTime() + mins * 60000);
@@ -240,6 +257,7 @@
         return;
       }
       toast(cur.id ? 'Termin izmijenjen' : 'Termin zakazan'); closeAp(); loadWeek();
+      if (pendingWelcome && c && c.id === pendingWelcome) { pendingWelcome = null; offerSend('Novi klijent — pošalji link dobrodošlice', c, welcomeMsg(c)); }
     } catch (err) { $('#apmWarn').innerHTML = '<b>' + esc(err.message || err) + '</b>'; $('#apmWarn').classList.remove('hide'); }
     finally { btn.disabled = false; }
   }
@@ -249,7 +267,10 @@
     const {data, error} = await sb.rpc('lax_set_status', {p_id: cur.id, p_status: b.dataset.st, p_price: pr});
     if (error) return toast('Greška: ' + error.message);
     toast(b.dataset.st === 'zavrsen' ? (data.points ? `Završeno · +${data.points} bodova${data.double ? ' (dopuna ×2)' : ''}` : 'Završeno') : 'Status: ' + STN[b.dataset.st]);
-    closeAp(); await reloadClients(); loadWeek();
+    const done = cur; closeAp(); await reloadClients(); loadWeek();
+    const c = clients.find(x => x.id === done.client_id);
+    if (b.dataset.st === 'zavrsen' && data.points > 0 && c && c.phone)
+      offerSend('Pošalji bodove klijentu', c, `Hvala ${first(c.name)}! 💛 Za današnji tretman dobijaš +${data.points} bodova${data.double ? ' (dopuna na vrijeme ×2)' : ''}. Sada imaš ${c.points} bodova.\n\nSvoje bodove i nagrade vidiš ovdje: ${cardUrl(c)}`);
   });
   $('#apmDel').onclick = async () => {
     if (!cur.id) return;
@@ -289,7 +310,7 @@
     const c = clients.find(x => x.id === cc.id) || cc;
     $('#clmBal').textContent = c.points;
     $('#clmRw').innerHTML = rewards.filter(r => r.active).map(r => `<button class="btn ${r.points <= c.points ? 'btn-gold' : ''}" data-rw="${r.id}" ${r.points <= c.points ? '' : 'disabled'}>${esc(r.name)} · ${r.points}</button>`).join('') || '<small>Nema nagrada.</small>';
-    const url = cardUrl(c), msg = `Ćao ${first(c.name)}! 💛 Dobrodošli u LAX program vjernosti. Svoje bodove i nagrade možeš pratiti ovdje: ${url}`;
+    const url = cardUrl(c), msg = welcomeMsg(c);
     $('#clmLink').textContent = url;
     $('#clmViber').href = c.phone ? 'viber://chat?number=%2B' + intl(c.phone) + '&draft=' + encodeURIComponent(msg) : '#';
     $('#clmWa').href = c.phone ? 'https://wa.me/' + intl(c.phone) + '?text=' + encodeURIComponent(msg) : '#';
@@ -306,7 +327,9 @@
     const r = cc.id ? await sb.from('lax_clients').update(row).eq('id', cc.id).select().single() : await sb.from('lax_clients').insert(row).select().single();
     if (r.error) return toast('Greška: ' + r.error.message);
     toast(cc.id ? 'Klijent sačuvan' : 'Klijent dodan (+20 bodova)');
+    const wasNew = !cc.id;
     await reloadClients(); const c = clients.find(x => x.id === r.data.id); openCl(c); drawDay();
+    if (wasNew && c && c.phone) offerSend('Pošalji link dobrodošlice', c, welcomeMsg(c));
   };
   $('#clmRw').addEventListener('click', async e => {
     const b = e.target.closest('[data-rw]'); if (!b) return; const r = rewards.find(x => x.id === b.dataset.rw);
