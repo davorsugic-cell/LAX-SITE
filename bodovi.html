@@ -43,12 +43,24 @@ a{color:inherit}
 (async function () {
   const C = window.LAX_CONFIG || {}, el = document.getElementById('app');
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const tok = (new URLSearchParams(location.search).get('k') || (location.hash || '').replace('#', '')).trim();
+  const fromUrl = (new URLSearchParams(location.search).get('k') || (location.hash || '').replace('#', '')).trim();
+  let saved = ''; try { saved = localStorage.getItem('lax_card') || ''; } catch (e) {}
+  const tok = fromUrl || saved;
+  const ask = 'https://wa.me/38766864406?text=' + encodeURIComponent('Pozdrav! Molim vas pošaljite mi link za moje bodove u LAX programu vjernosti 💛');
+  const askV = 'viber://chat?number=%2B38766864406&draft=' + encodeURIComponent('Pozdrav! Molim vas pošaljite mi link za moje bodove u LAX programu vjernosti 💛');
+  const none = () => el.innerHTML = `<div style="max-width:440px">
+      <p style="font-family:var(--serif);font-size:30px;color:var(--ink);margin-bottom:10px">Moji bodovi</p>
+      Svoje bodove vidite preko ličnog linka koji vam salon pošalje na Viber ili WhatsApp.<br>Kad ga jednom otvorite na ovom telefonu, sljedeći put je dovoljno kliknuti „Provjerite svoje bodove“ na sajtu.<br><br>
+      Nemate link? Zatražite ga:<br>
+      <a class="btn" href="${askV}">Viber</a> <a class="btn" href="${ask}" target="_blank" rel="noopener" style="background:#2b2420">WhatsApp</a></div>`;
+  if (!tok) return none();
   const bad = () => el.innerHTML = 'Ovaj link nije ispravan ili je zamijenjen novim.<br>Javi nam se na Viber i poslaćemo ti tvoj link.<br><a class="btn" href="#" data-book>Kontaktirajte nas</a>';
   if (tok.length < 10) return bad();
   const sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
   const {data, error} = await sb.rpc('lax_card', {p_token: tok});
-  if (error || !data) return bad();
+  if (error || !data) { if (!fromUrl) { try { localStorage.removeItem('lax_card'); } catch (e) {} return none(); } return bad(); }
+  try { localStorage.setItem('lax_card', tok); } catch (e) {}
+  if (fromUrl) history.replaceState(null, '', '/bodovi');
   const p = Math.max(0, data.points), R = data.rewards || [];
   const nx = R.find(r => r.points > p), prev = [...R].reverse().find(r => r.points <= p);
   const pct = nx ? Math.round(p / nx.points * 100) : 100;
