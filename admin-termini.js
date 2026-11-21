@@ -350,28 +350,72 @@
   function drawStaffAdmin() {
     $('#stList').innerHTML = staff.map((s, i) => `<div class="card strow">
       <div><label class="l">Ime</label><input data-s="${i}" data-k="name" value="${esc(s.name)}"></div>
-      <div><label class="l">Email za prijavu</label><input data-s="${i}" data-k="email" value="${esc(s.email || '')}" placeholder="npr. marija@lax.ba"></div>
       <div><label class="l">Redoslijed</label><input type="number" data-s="${i}" data-k="sort" value="${s.sort ?? 0}"></div>
       <label class="ck"><input type="checkbox" data-s="${i}" data-k="active" ${s.active ? 'checked' : ''}> aktivna</label>
-      <span class="lk">${s.user_id ? '✓ može se prijaviti' : 'nema prijavu'}</span>
-      <button class="btn btn-gold" data-ss="${i}">Sačuvaj</button></div>`).join('');
+      <button class="btn btn-gold" data-ss="${i}">Sačuvaj</button>
+      ${!s.id ? '<div class="slog"><span class="lk">Prvo sačuvaj radnicu, pa joj napravi prijavu.</span></div>' : s.user_id ? `<div class="slog ok">
+        <span class="lk">✓ Prijava: <b>${esc(s.email || '')}</b></span>
+        <input data-s="${i}" data-k="pw" placeholder="nova lozinka (min. 8)" autocomplete="new-password"><button class="btn" data-gen="${i}">Generiši</button>
+        <button class="btn" data-pw="${i}">Promijeni lozinku</button><button class="btn btn-red" data-rm="${i}">Ukloni prijavu</button></div>` : `<div class="slog">
+        <span class="lk">Nema prijavu.</span>
+        <input data-s="${i}" data-k="em" placeholder="email za prijavu" value="${esc(s._em || '')}" autocomplete="off">
+        <input data-s="${i}" data-k="pw" placeholder="lozinka (min. 8)" value="${esc(s._pw || '')}" autocomplete="new-password"><button class="btn" data-gen="${i}">Generiši</button>
+        <button class="btn btn-gold" data-mk="${i}">Napravi prijavu</button></div>`}
+      ${s._done ? `<div class="slog done"><span>Pošalji radnici podatke za prijavu (Viber, SMS):</span><code>${esc(s._done)}</code><button class="btn" data-cp="${i}">Kopiraj</button></div>` : ''}
+    </div>`).join('');
     $('#rwList').innerHTML = rewards.map((r, i) => `<div class="card rwrow">
       <input data-r="${i}" data-k="name" value="${esc(r.name)}" placeholder="Naziv nagrade">
       <input type="number" data-r="${i}" data-k="points" value="${r.points ?? ''}" placeholder="bodova">
       <label class="ck"><input type="checkbox" data-r="${i}" data-k="active" ${r.active !== false ? 'checked' : ''}> aktivna</label>
       <button class="btn btn-gold" data-rs="${i}">Sačuvaj</button><button class="btn btn-red" data-rx="${i}">×</button></div>`).join('');
   }
-  $('#stList').addEventListener('input', e => { const t = e.target; if (t.dataset.s == null) return; const s = staff[+t.dataset.s]; s['_' + t.dataset.k] = t.type === 'checkbox' ? t.checked : t.value; });
+  $('#stList').addEventListener('input', e => { const t = e.target; if (t.dataset.s == null) return; const s = staff[+t.dataset.s], k = t.dataset.k; s[(k === 'em' || k === 'pw') ? '_' + k : '_' + k] = t.type === 'checkbox' ? t.checked : t.value; });
+  async function staffUser(body) {
+    const {data, error} = await sb.functions.invoke('lax-staff-user', {body});
+    if (error) {
+      let msg = error.message, exists = false;
+      try { const j = await error.context.json(); msg = j.error || msg; exists = !!j.exists; } catch (_) {}
+      if (/Failed to send|not found|404/i.test(msg)) msg = 'Funkcija lax-staff-user još nije postavljena u Supabase.';
+      return {error: msg, exists};
+    }
+    return data || {};
+  }
+  const genPw = () => { const a = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'; return Array.from(crypto.getRandomValues(new Uint8Array(10)), x => a[x % a.length]).join(''); };
   $('#stList').addEventListener('click', async e => {
-    const b = e.target.closest('[data-ss]'); if (!b) return; const s = staff[+b.dataset.ss];
+    const t = e.target, i = k => +t.closest('[' + k + ']').getAttribute(k);
+    if (t.closest('[data-gen]')) { const s = staff[i('data-gen')]; s._pw = genPw(); const inp = t.closest('.slog').querySelector('[data-k="pw"]'); inp.value = s._pw; return; }
+    if (t.closest('[data-cp]')) { navigator.clipboard.writeText(staff[i('data-cp')]._done).then(() => toast('Kopirano')); return; }
+    if (t.closest('[data-mk]')) {
+      const s = staff[i('data-mk')], em = (s._em || '').trim(), pw = s._pw || '';
+      if (!em || pw.length < 8) return toast('Upiši email i lozinku od bar 8 znakova');
+      t.disabled = true; const r = await staffUser({action: 'create', staff_id: s.id, email: em, password: pw}); t.disabled = false;
+      if (r.error) {
+        if (r.exists && await askConfirm('Nalog već postoji', `Nalog s emailom ${em} već postoji. Želiš li ga povezati s radnicom ${s.name}? Lozinka ostaje stara.`, 'Poveži', false)) {
+          const l = await sb.rpc('lax_link_staff', {p_staff: s.id, p_email: em}); if (l.error) return toast('Greška: ' + l.error.message);
+          toast('Prijava povezana'); await reloadBase(); return drawStaffAdmin();
+        }
+        return toast('Greška: ' + r.error);
+      }
+      const done = `Prijava u LAX admin: ${location.origin}/admin\nEmail: ${em}\nLozinka: ${pw}`;
+      await reloadBase(); const n = staff.find(x => x.id === s.id); if (n) n._done = done; drawStaffAdmin(); toast('Prijava napravljena'); return;
+    }
+    if (t.closest('[data-pw]')) {
+      const s = staff[i('data-pw')], pw = s._pw || '';
+      if (pw.length < 8) return toast('Nova lozinka mora imati bar 8 znakova');
+      const r = await staffUser({action: 'password', staff_id: s.id, password: pw}); if (r.error) return toast('Greška: ' + r.error);
+      s._done = `Prijava u LAX admin: ${location.origin}/admin\nEmail: ${s.email}\nNova lozinka: ${pw}`; s._pw = ''; drawStaffAdmin(); toast('Lozinka promijenjena'); return;
+    }
+    if (t.closest('[data-rm]')) {
+      const s = staff[i('data-rm')];
+      if (!await askConfirm('Ukloniti prijavu?', `${s.name} se više neće moći prijaviti u admin, a njen nalog (${s.email}) se briše. Termini i podaci ostaju.`, 'Ukloni')) return;
+      const r = await staffUser({action: 'remove', staff_id: s.id}); if (r.error) return toast('Greška: ' + r.error);
+      await reloadBase(); drawStaffAdmin(); toast('Prijava uklonjena'); return;
+    }
+    const b = t.closest('[data-ss]'); if (!b) return; const s = staff[+b.dataset.ss];
     const row = {name: (s._name ?? s.name).trim(), sort: +(s._sort ?? s.sort) || 0, active: s._active ?? s.active};
     if (!row.name) return toast('Upiši ime');
     const r = s.id ? await sb.from('lax_staff').update(row).eq('id', s.id).select().single() : await sb.from('lax_staff').insert(row).select().single();
     if (r.error) return toast('Greška: ' + r.error.message);
-    if (s._email !== undefined && (s._email || '') !== (s.email || '')) {
-      const l = await sb.rpc('lax_link_staff', {p_staff: r.data.id, p_email: s._email});
-      if (l.error) { toast('Sačuvano, ali prijava nije povezana: ' + l.error.message); }
-    }
     toast('Radnica sačuvana'); await reloadBase(); drawStaffAdmin(); loadWeek();
   });
   $('#stNew').onclick = () => { staff.push({name: '', email: '', sort: staff.length + 1, active: true}); drawStaffAdmin(); };

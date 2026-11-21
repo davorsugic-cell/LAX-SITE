@@ -164,7 +164,9 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 .rwb{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}.rwb .btn{font-size:12px;padding:8px 12px}
 .lnkbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:14px}.lnkbox code{display:block;font-size:12px;word-break:break-all;margin-bottom:8px;color:var(--ink)}.lnkbox div{display:flex;flex-wrap:wrap;gap:6px}.lnkbox .btn{font-size:12px;padding:7px 12px}
 .hist{max-height:220px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:12px}.ph{display:grid;grid-template-columns:90px 1fr 60px;gap:8px;padding:8px 12px;border-bottom:1px solid #f1e9df;font-size:13px}.ph b{text-align:right;color:var(--green)}.ph b.neg{color:var(--red)}
-.strow{display:grid;grid-template-columns:1.2fr 1.6fr 90px auto auto auto;gap:10px;align-items:end;padding:14px 16px}.strow .lk{font-size:12px;color:var(--muted);padding-bottom:10px}.strow .ck{padding-bottom:10px}
+.strow{display:grid;grid-template-columns:1.6fr 100px auto auto;gap:10px;align-items:end;padding:14px 16px}
+.strow .slog{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px dashed var(--line);padding-top:12px;margin-top:2px}.strow .slog input{max-width:230px}.strow .slog.ok .lk b{color:var(--green);font-weight:500}
+.strow .slog.done{background:#eef5ef;border:1px solid #cfe3d4;border-radius:12px;padding:10px 12px;font-size:13px;color:var(--green)}.strow .slog.done code{white-space:pre;font-size:12px;color:var(--ink);background:#fff;border-radius:8px;padding:8px 10px;flex:1}.strow .lk{font-size:12px;color:var(--muted);padding-bottom:10px}.strow .ck{padding-bottom:10px}
 .rwrow{display:grid;grid-template-columns:2fr 110px auto auto 44px;gap:8px;align-items:center;padding:12px 14px}
 
 @media (max-width:760px){
@@ -250,7 +252,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 
     <section id="t-staff" class="hide">
       <div class="bar"><h2>Radnice</h2><button class="btn btn-gold" id="stNew">+ Nova radnica</button></div>
-      <p class="hint">Radnica se prijavljuje svojim emailom i lozinkom i vidi samo Termine i Klijente. Nalog joj napravi u Supabase → Authentication → Users → <b>Add user</b> (email, lozinka, uključi „Auto Confirm User“), pa ovdje upiši isti email i klikni Sačuvaj.</p>
+      <p class="hint">Radnica se prijavljuje svojim emailom i lozinkom i vidi samo Termine i Klijente. Prijavu joj napraviš ovdje: upiši email, lozinku (ili klikni Generiši) i „Napravi prijavu“, pa joj pošalji podatke.</p>
       <div id="stList"></div>
       <div class="bar" style="margin-top:34px"><h2>Nagrade programa vjernosti</h2><button class="btn btn-gold" id="rwNew">+ Nova nagrada</button></div>
       <div id="rwList"></div>
