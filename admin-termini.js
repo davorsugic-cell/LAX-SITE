@@ -480,15 +480,17 @@
   let rmList = [], rmDay = null;
   const rmKey = id => 'lax_rm_' + id;
   const isSent = a => !!a.reminded_at || (() => { try { return !!localStorage.getItem(rmKey(a.id)); } catch (e) { return false; } })();
+  // sljedeći dan; nedjelja se preskače
   function nextWorkday() { const d = new Date(); d.setHours(0, 0, 0, 0); do { d.setDate(d.getDate() + 1); } while (!HOURS[d.getDay()]); return d; }
+  let rmPick = null; // dan izabran strelicama u prozoru
   async function loadReminders() {
-    rmDay = nextWorkday(); const e = new Date(rmDay); e.setDate(e.getDate() + 1);
+    const auto = nextWorkday(); rmDay = rmPick || auto; const e = new Date(rmDay); e.setDate(e.getDate() + 1);
     const {data, error} = await sb.from('lax_appointments').select('*').eq('status', 'zakazan').gte('starts_at', rmDay.toISOString()).lt('starts_at', e.toISOString()).order('starts_at');
     if (error) return;
     rmList = (data || []).map(a => ({...a, s: new Date(a.starts_at), e: new Date(a.ends_at)}));
-    const lbl = DN[rmDay.getDay()] + ' ' + ddmm(rmDay), tom = (rmDay - new Date().setHours(0, 0, 0, 0)) === 86400000;
+    const lbl = DN[auto.getDay()] + ' ' + ddmm(auto), tom = dkey(auto) === dkey(new Date(Date.now() + 86400000));
     $('#rmBtn').firstChild.textContent = '🔔 Podsjetnici za ' + (tom ? 'sutra' : lbl);
-    const todo = rmList.filter(a => !isSent(a) && phoneOf(a)).length;
+    const todo = rmPick && dkey(rmPick) !== dkey(auto) ? +$('#rmN').textContent || 0 : rmList.filter(a => !isSent(a) && phoneOf(a)).length;
     $('#rmN').textContent = todo; $('#rmN').classList.toggle('hide', !todo);
     // podsjetnik na podsjetnike: od 14h, ako nešto nije poslano
     $('#rmBar').classList.toggle('hide', !(todo && new Date().getHours() >= 14));
@@ -523,9 +525,9 @@
     a.reminded_at = now; setTimeout(() => { drawReminders(); loadReminders(); }, 300);
     await sb.from('lax_appointments').update({reminded_at: now}).eq('id', a.id); // bez kolone (prije SQL-a) ostaje zapisano u pregledniku
   });
-  const openRm = async () => { await loadReminders(); drawReminders(); $('#rmm').classList.remove('hide'); };
+  const openRm = async () => { rmPick = null; await loadReminders(); drawReminders(); $('#rmm').classList.remove('hide'); };
   $('#rmBtn').onclick = openRm; $('#rmBarGo').onclick = openRm;
-  const closeRm = () => $('#rmm').classList.add('hide');
+  const closeRm = () => { $('#rmm').classList.add('hide'); if (rmPick) { rmPick = null; loadReminders(); } };
   $('#rmmX').onclick = closeRm; $('#rmmOk').onclick = closeRm;
   $('#rmm').addEventListener('click', e => { if (e.target.id === 'rmm') closeRm(); });
 
