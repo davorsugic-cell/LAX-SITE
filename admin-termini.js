@@ -90,7 +90,7 @@
     const {data, error} = await sb.from('lax_appointments').select('*').gte('starts_at', weekStart.toISOString()).lt('starts_at', we.toISOString()).order('starts_at');
     if (error) return toast('Greška: ' + error.message);
     appts = (data || []).map(a => ({...a, s: new Date(a.starts_at), e: new Date(a.ends_at)}));
-    drawWeek();
+    drawWeek(); loadReminders();
   }
   const live = a => a.status === 'zakazan' || a.status === 'zavrsen';
   function drawWeek() {
@@ -218,11 +218,12 @@
       $('#apmPts').innerHTML = `♥ ${c.points} bodova` + (can ? ` — može iskoristiti: ${esc(can.name)}` : '');
     } else $('#apmPts').textContent = v ? 'Novi klijent — upiši telefon ispod.' : '';
   }
+  const reminderMsg = (a, c) => `Ćao ${first(c.name)}! Podsjećamo te na termin u LAX Studiju ${DN[a.s.getDay()].toLowerCase()} ${ddmm(a.s)} u ${hm(a.s)} (${a.service_name}). Vidimo se! 💛` +
+    (c.token ? `\n\nTvoji bodovi (${c.points}): ${cardUrl(c)}` : '');
   function remindLink() {
     const c = clients.find(x => x.id === cur.client_id), b = $('#apmRemind');
     if (!cur.id || !c || !c.phone || cur.status !== 'zakazan') return b.classList.add('hide');
-    const msg = `Ćao ${first(c.name)}! Podsjećamo te na termin u LAX Studiju ${DN[cur.s.getDay()].toLowerCase()} ${ddmm(cur.s)} u ${hm(cur.s)} (${cur.service_name}). Vidimo se! 💛` +
-      (c.token ? `\n\nTvoji bodovi (${c.points}): ${cardUrl(c)}` : '');
+    const msg = reminderMsg(cur, c);
     const L = sendLinks(c.phone, msg);
     $('#apmRV').href = L.v; $('#apmRW').href = L.w; $('#apmRS').href = L.s;
     b.classList.remove('hide');
@@ -472,6 +473,61 @@
 
   // admin.html je možda već završio prijavu prije nego što se ovaj fajl učitao
   if (window.LAX_WHO) window.laxStaffInit(window.LAX_WHO);
+
+  // =========================================================
+  // PODSJETNICI ZA SLJEDEĆI RADNI DAN
+  // =========================================================
+  let rmList = [], rmDay = null;
+  const rmKey = id => 'lax_rm_' + id;
+  const isSent = a => !!a.reminded_at || (() => { try { return !!localStorage.getItem(rmKey(a.id)); } catch (e) { return false; } })();
+  function nextWorkday() { const d = new Date(); d.setHours(0, 0, 0, 0); do { d.setDate(d.getDate() + 1); } while (!HOURS[d.getDay()]); return d; }
+  async function loadReminders() {
+    rmDay = nextWorkday(); const e = new Date(rmDay); e.setDate(e.getDate() + 1);
+    const {data, error} = await sb.from('lax_appointments').select('*').eq('status', 'zakazan').gte('starts_at', rmDay.toISOString()).lt('starts_at', e.toISOString()).order('starts_at');
+    if (error) return;
+    rmList = (data || []).map(a => ({...a, s: new Date(a.starts_at), e: new Date(a.ends_at)}));
+    const lbl = DN[rmDay.getDay()] + ' ' + ddmm(rmDay), tom = (rmDay - new Date().setHours(0, 0, 0, 0)) === 86400000;
+    $('#rmBtn').firstChild.textContent = '🔔 Podsjetnici za ' + (tom ? 'sutra' : lbl);
+    const todo = rmList.filter(a => !isSent(a) && phoneOf(a)).length;
+    $('#rmN').textContent = todo; $('#rmN').classList.toggle('hide', !todo);
+    // podsjetnik na podsjetnike: od 14h, ako nešto nije poslano
+    $('#rmBar').classList.toggle('hide', !(todo && new Date().getHours() >= 14));
+    $('#rmBarT').textContent = `Nisu poslani podsjetnici za ${tom ? 'sutra' : lbl}: ${todo} ${todo === 1 ? 'termin' : 'termina'}.`;
+    if (!$('#rmm').classList.contains('hide')) drawReminders();
+  }
+  const phoneOf = a => { const c = clients.find(x => x.id === a.client_id); return c && c.phone ? c : null; };
+  document.body.insertAdjacentHTML('beforeend', `<div class="md hide" id="rmm"><div class="mdb" style="max-width:640px">
+    <div class="mdh"><h3 id="rmmT">Podsjetnici</h3><button class="x" id="rmmX">×</button></div>
+    <p class="hint" style="margin:0 0 6px">Klikni Viber, WhatsApp ili SMS kod svakog termina — poruka je već napisana. Poslani se označe sami.</p>
+    <div id="rmmList"></div>
+    <div class="mact"><small id="rmmSum" style="flex:1;color:var(--muted)"></small><button class="btn btn-gold" id="rmmOk">Zatvori</button></div></div></div>`);
+  function drawReminders() {
+    $('#rmmT').textContent = 'Podsjetnici — ' + DN[rmDay.getDay()] + ' ' + ddmm(rmDay);
+    if (!rmList.length) { $('#rmmList').innerHTML = '<div class="card" style="text-align:center;color:var(--muted)">Nema zakazanih termina za taj dan.</div>'; $('#rmmSum').textContent = ''; return; }
+    $('#rmmList').innerHTML = rmList.map(a => {
+      const c = phoneOf(a), st = staff.find(x => x.id === a.staff_id), sent = isSent(a);
+      const name = c ? c.name : (clients.find(x => x.id === a.client_id) || {}).name || a.client_name || 'bez klijenta';
+      let acts = '<span class="nop">nema broja telefona</span>';
+      if (c) { const L = sendLinks(c.phone, reminderMsg(a, c));
+        acts = (sent ? '<span class="ok">✓ poslano</span>' : '') + `<a class="btn" data-rm="${a.id}" href="${L.v}" target="_blank">Viber</a><a class="btn" data-rm="${a.id}" href="${L.w}" target="_blank" rel="noopener">WhatsApp</a><a class="btn" data-rm="${a.id}" href="${L.s}">SMS</a>`; }
+      return `<div class="rmrow ${sent ? 'sent' : ''}"><div class="tm">${hm(a.s)}</div><div class="who"><b>${esc(name)}</b><small>${esc(a.service_name)} · ${esc(st ? st.name : '')}</small></div><div class="acts">${acts}</div></div>`;
+    }).join('');
+    const withPh = rmList.filter(phoneOf), done = withPh.filter(isSent).length;
+    $('#rmmSum').textContent = `Poslano ${done} od ${withPh.length}`;
+  }
+  $('#rmmList').addEventListener('click', async e => {
+    const b = e.target.closest('[data-rm]'); if (!b) return;
+    const a = rmList.find(x => x.id === b.dataset.rm); if (!a || isSent(a)) return;
+    const now = new Date().toISOString();
+    try { localStorage.setItem(rmKey(a.id), now); } catch (err) {}
+    a.reminded_at = now; setTimeout(() => { drawReminders(); loadReminders(); }, 300);
+    await sb.from('lax_appointments').update({reminded_at: now}).eq('id', a.id); // bez kolone (prije SQL-a) ostaje zapisano u pregledniku
+  });
+  const openRm = async () => { await loadReminders(); drawReminders(); $('#rmm').classList.remove('hide'); };
+  $('#rmBtn').onclick = openRm; $('#rmBarGo').onclick = openRm;
+  const closeRm = () => $('#rmm').classList.add('hide');
+  $('#rmmX').onclick = closeRm; $('#rmmOk').onclick = closeRm;
+  $('#rmm').addEventListener('click', e => { if (e.target.id === 'rmm') closeRm(); });
 
   // osvježi plan svake minute (druga radnica je možda nešto upisala)
   setInterval(() => { if (READY && !$('#t-appts').classList.contains('hide') && $('#apm').classList.contains('hide')) loadWeek(); }, 60000);
