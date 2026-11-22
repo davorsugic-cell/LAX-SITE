@@ -480,15 +480,17 @@
   let rmList = [], rmDay = null;
   const rmKey = id => 'lax_rm_' + id;
   const isSent = a => !!a.reminded_at || (() => { try { return !!localStorage.getItem(rmKey(a.id)); } catch (e) { return false; } })();
+  // "danas" za podsjetnike: do 6 ujutro se još računa prethodni dan (rad poslije ponoći)
+  function logicalToday() { const d = new Date(); if (d.getHours() < 6) d.setDate(d.getDate() - 1); d.setHours(0, 0, 0, 0); return d; }
   // sljedeći dan; nedjelja se preskače
-  function nextWorkday() { const d = new Date(); d.setHours(0, 0, 0, 0); do { d.setDate(d.getDate() + 1); } while (!HOURS[d.getDay()]); return d; }
+  function nextWorkday() { const d = logicalToday(); do { d.setDate(d.getDate() + 1); } while (!HOURS[d.getDay()]); return d; }
   let rmPick = null; // dan izabran strelicama u prozoru
   async function loadReminders() {
     const auto = nextWorkday(); rmDay = rmPick || auto; const e = new Date(rmDay); e.setDate(e.getDate() + 1);
     const {data, error} = await sb.from('lax_appointments').select('*').eq('status', 'zakazan').gte('starts_at', rmDay.toISOString()).lt('starts_at', e.toISOString()).order('starts_at');
     if (error) return;
     rmList = (data || []).map(a => ({...a, s: new Date(a.starts_at), e: new Date(a.ends_at)}));
-    const lbl = DN[auto.getDay()] + ' ' + ddmm(auto), tom = dkey(auto) === dkey(new Date(Date.now() + 86400000));
+    const lbl = DN[auto.getDay()] + ' ' + ddmm(auto), tom = (() => { const t = logicalToday(); t.setDate(t.getDate() + 1); return dkey(t) === dkey(auto); })();
     $('#rmBtn').firstChild.textContent = '🔔 Podsjetnici za ' + (tom ? 'sutra' : lbl);
     const todo = rmPick && dkey(rmPick) !== dkey(auto) ? +$('#rmN').textContent || 0 : rmList.filter(a => !isSent(a) && phoneOf(a)).length;
     $('#rmN').textContent = todo; $('#rmN').classList.toggle('hide', !todo);
