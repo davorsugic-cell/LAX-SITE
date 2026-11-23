@@ -135,6 +135,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 .ap:hover{box-shadow:0 4px 14px rgba(0,0,0,.12)}
 .ap.zavrsen{border-left-color:var(--green);background:#eef5ef}.ap.nije_dosla,.ap.otkazan{border-left-color:var(--red);background:#faeeed;opacity:.75}.ap.nije_dosla .u,.ap.otkazan .u{text-decoration:line-through}
 .ap .t{color:var(--muted);font-size:11px}.ap .k b{font-weight:600}.sem{display:inline-flex;gap:3px;margin-left:6px;vertical-align:1px}.sem i{min-width:17px;height:17px;padding:0 4px;border-radius:9px;font-style:normal;font-size:10px;font-weight:700;line-height:17px;text-align:center;color:#fff}
+.prmode{display:flex;gap:6px;background:#efe8df;border-radius:12px;padding:4px;margin-bottom:12px}.prmode button{flex:1;border:0;background:none;padding:9px 6px;border-radius:9px;font:inherit;font-size:13.5px;cursor:pointer;color:var(--muted)}.prmode button.on{background:#fff;color:var(--ink,#222);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .acw{position:relative}.sug{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);max-height:290px;overflow:auto;z-index:30}.sug div{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;font-size:14px;border-bottom:1px solid #f1ece6}.sug div:last-child{border-bottom:0}.sug div.on,.sug div:hover{background:#faf5ee}.sug b{font-weight:600}.sug small{margin-left:auto;color:var(--muted);font-size:12px;white-space:nowrap}.sug .nw{color:var(--muted);font-style:italic}
 .sem .g{background:#2f8a4a}.sem .y{background:#e0ad1c;color:#3a2a00}.sem .r{background:#c93636}
 .ap .t .apr{color:var(--ink);font-weight:600;font-size:12px}.ap.zavrsen .t .apr{color:var(--green)}.ap .u{font-weight:600;font-size:13px;margin:1px 0;padding-right:4px}.ap .k{color:#4a3f38}.pts{color:#b4506b;font-weight:600}
@@ -262,7 +263,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
     <section id="t-appts">
       <div class="bar"><h2>Plan termina</h2>
         <div class="wk"><button class="btn rd" id="apPrev">‹</button><b id="apWeek"></b><button class="btn rd" id="apNext">›</button><button class="btn" id="apToday">Danas</button></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="prBtn">🖨 Štampaj</button><button class="btn" id="rmBtn">🔔 Podsjetnici za sutra<span class="badge hide" id="rmN"></span></button><button class="btn btn-gold" id="apNew">+ Novi termin</button></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="prBtn">🖨 Štampa / slika</button><button class="btn" id="rmBtn">🔔 Podsjetnici za sutra<span class="badge hide" id="rmN"></span></button><button class="btn btn-gold" id="apNew">+ Novi termin</button></div></div>
       <div class="rmbar hide" id="rmBar"><span id="rmBarT"></span><button class="btn" id="rmBarGo">Otvori podsjetnike</button></div>
       <div class="days" id="apDays"></div>
       <div class="prom hide" id="apProm"></div>

@@ -638,14 +638,23 @@
   // ŠTAMPA: dnevni, sedmični i mjesečni pregled termina
   // =========================================================
   document.body.insertAdjacentHTML('beforeend', `<div class="md hide" id="prm"><div class="mdb" style="max-width:440px">
-    <div class="mdh"><h3>Štampaj pregled</h3><button class="x" id="prmX">×</button></div>
+    <div class="mdh"><h3>Štampa / slika rasporeda</h3><button class="x" id="prmX">×</button></div>
+    <div class="prmode"><button class="on" data-pm="print">🖨 Štampaj</button><button data-pm="img">📷 Slika za Viber / WhatsApp</button></div>
     <div style="display:grid;gap:8px">
       <button class="btn" data-pr="dan" id="prDan">Dan</button>
       <button class="btn" data-pr="sedmica" id="prSed">Sedmica</button>
       <button class="btn" data-pr="mjesec" id="prMj">Mjesec</button>
     </div>
     <label class="ck" style="margin-top:14px"><input type="checkbox" id="prOtk"> Uključi otkazane i „nije došla“</label>
-  </div></div>`);
+  </div></div>
+  <div class="md hide" id="pim"><div class="mdb" style="max-width:720px">
+    <div class="mdh"><h3>Slika rasporeda</h3><button class="x" id="pimX">×</button></div>
+    <div id="pimBox" style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;max-height:56vh;overflow:auto;text-align:center"></div>
+    <div class="rmd" style="order:0;margin-top:14px;flex-wrap:wrap"><button class="btn btn-gold hide" id="pimShare">📤 Podijeli (Viber / WhatsApp)</button><button class="btn" id="pimCopy">📋 Kopiraj sliku</button><a class="btn" id="pimDl">⬇ Preuzmi</a></div>
+    <small id="pimHint" style="display:block;color:var(--muted);font-size:12.5px;margin-top:10px;line-height:1.5"></small></div></div>`);
+  let prMode = 'print';
+  $('#prm').addEventListener('click', e => { const m = e.target.closest('[data-pm]'); if (!m) return;
+    prMode = m.dataset.pm; $('#prm').querySelectorAll('[data-pm]').forEach(x => x.classList.toggle('on', x === m)); });
   const closePr = () => $('#prm').classList.add('hide');
   $('#prBtn').onclick = () => {
     const d = dayDate(day), we = new Date(weekStart); we.setDate(we.getDate() + 5);
@@ -655,22 +664,69 @@
     $('#prm').classList.remove('hide');
   };
   $('#prmX').onclick = closePr; $('#prm').addEventListener('click', e => { if (e.target.id === 'prm') closePr(); });
-  $('#prm').addEventListener('click', async e => {
-    const b = e.target.closest('[data-pr]'); if (!b) return;
-    const w = window.open('', '_blank'); // odmah, da preglednik ne blokira prozor
-    if (!w) return toast('Preglednik je blokirao novi prozor — dozvoli pop-up za lax.ba');
-    w.document.write('<p style="font-family:sans-serif;padding:30px">Pripremam pregled…</p>');
-    const k = b.dataset.pr, d = dayDate(day); let from, to, title;
+  async function prData(k) {
+    const d = dayDate(day); let from, to, title;
     if (k === 'dan') { from = new Date(d); to = new Date(d); to.setDate(to.getDate() + 1); title = 'Dnevni pregled — ' + DN[d.getDay()] + ' ' + ddmm(d) + d.getFullYear() + '.'; }
     else if (k === 'sedmica') { from = new Date(weekStart); to = new Date(weekStart); to.setDate(to.getDate() + 7); const e2 = new Date(weekStart); e2.setDate(e2.getDate() + 5); title = 'Sedmični pregled — ' + ddmm(from) + ' – ' + ddmm(e2) + e2.getFullYear() + '.'; }
     else { from = new Date(d.getFullYear(), d.getMonth(), 1); to = new Date(d.getFullYear(), d.getMonth() + 1, 1); title = 'Mjesečni pregled — ' + MN[d.getMonth()] + ' ' + d.getFullYear() + '.'; }
     const {data, error} = await sb.from('lax_appointments').select('*').gte('starts_at', from.toISOString()).lt('starts_at', to.toISOString()).order('starts_at');
-    if (error) { w.document.body.innerHTML = 'Greška: ' + esc(error.message); return; }
+    if (error) throw error;
     const all = $('#prOtk').checked;
-    const L = (data || []).map(a => ({...a, s: new Date(a.starts_at), e: new Date(a.ends_at)})).filter(a => all || live(a));
-    w.document.open(); w.document.write(printHtml(title, L, k)); w.document.close();
+    return {title, from, L: (data || []).map(a => ({...a, s: new Date(a.starts_at), e: new Date(a.ends_at)})).filter(a => all || live(a))};
+  }
+  $('#prm').addEventListener('click', async e => {
+    const b = e.target.closest('[data-pr]'); if (!b) return;
+    const k = b.dataset.pr;
+    if (prMode === 'img') return makeImage(k, b);
+    const w = window.open('', '_blank'); // odmah, da preglednik ne blokira prozor
+    if (!w) return toast('Preglednik je blokirao novi prozor — dozvoli pop-up za lax.ba');
+    w.document.write('<p style="font-family:sans-serif;padding:30px">Pripremam pregled…</p>');
+    let r; try { r = await prData(k); } catch (err) { w.document.body.innerHTML = 'Greška: ' + esc(err.message); return; }
+    w.document.open(); w.document.write(printHtml(r.title, r.L, k)); w.document.close();
     closePr(); setTimeout(() => { try { w.focus(); w.print(); } catch (err) {} }, 400);
   });
+  // SLIKA: isti raspored kao štampa, pretvoren u PNG za grupu na Viberu / WhatsAppu
+  let pimBlob = null, pimFile = null, pimUrl = null;
+  async function makeImage(k, btn) {
+    const old = btn.textContent; btn.disabled = true; btn.textContent = 'Pravim sliku…';
+    try {
+      const r = await prData(k), W = k === 'dan' ? 980 : 1500;
+      const html = printHtml(r.title, r.L, k, true).replace('</head>', '<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script></head>');
+      const fr = document.createElement('iframe');
+      fr.style.cssText = `position:fixed;left:-20000px;top:0;width:${W}px;height:1200px;border:0`;
+      document.body.appendChild(fr);
+      await new Promise((ok, no) => { fr.onload = ok; fr.onerror = no; fr.srcdoc = html; });
+      const fw = fr.contentWindow;
+      for (let i = 0; i < 50 && !fw.html2canvas; i++) await new Promise(t => setTimeout(t, 100));
+      if (!fw.html2canvas) throw new Error('Alat za sliku se nije učitao — provjeri internet');
+      const bd = fr.contentDocument.body; fr.style.height = bd.scrollHeight + 'px';
+      const cv = await fw.html2canvas(bd, {scale: 2, backgroundColor: '#ffffff', windowWidth: W, width: W, height: bd.scrollHeight, logging: false});
+      pimBlob = await new Promise(ok => cv.toBlob(ok, 'image/png')); // prije uklanjanja iframe-a, inače toBlob ne završi
+      fr.remove();
+      const fn = 'LAX-raspored-' + (k === 'mjesec' ? MN[r.from.getMonth()].toLowerCase() + '-' + r.from.getFullYear() : dkey(r.from)) + '.png';
+      pimFile = new File([pimBlob], fn, {type: 'image/png'});
+      if (pimUrl) URL.revokeObjectURL(pimUrl); pimUrl = URL.createObjectURL(pimBlob);
+      $('#pimBox').innerHTML = `<img src="${pimUrl}" style="max-width:100%;display:block;margin:0 auto">`;
+      $('#pimDl').href = pimUrl; $('#pimDl').download = fn;
+      const canShare = !!(navigator.canShare && navigator.canShare({files: [pimFile]}));
+      $('#pimShare').classList.toggle('hide', !canShare);
+      $('#pimCopy').classList.toggle('hide', !(navigator.clipboard && window.ClipboardItem));
+      $('#pimHint').innerHTML = (canShare ? '<b>Podijeli</b> → izaberi Viber ili WhatsApp → izaberi grupu.<br>' : '') +
+        '<b>Na računaru:</b> Kopiraj sliku → otvori grupu u Viberu / WhatsAppu → zalijepi s <b>Ctrl+V</b> → pošalji.';
+      closePr(); $('#pim').classList.remove('hide');
+    } catch (err) { toast('Slika nije napravljena: ' + (err.message || err)); }
+    finally { btn.disabled = false; btn.textContent = old; document.querySelectorAll('iframe[srcdoc]').forEach(f => f.remove()); }
+  }
+  $('#pimX').onclick = () => $('#pim').classList.add('hide');
+  $('#pim').addEventListener('click', e => { if (e.target.id === 'pim') $('#pim').classList.add('hide'); });
+  $('#pimShare').onclick = async () => {
+    try { await navigator.share({files: [pimFile], title: 'LAX raspored'}); }
+    catch (err) { if (err.name !== 'AbortError') toast('Dijeljenje nije uspjelo — koristi Kopiraj ili Preuzmi'); }
+  };
+  $('#pimCopy').onclick = async () => {
+    try { await navigator.clipboard.write([new ClipboardItem({'image/png': pimBlob})]); toast('Slika kopirana — otvori grupu i zalijepi s Ctrl+V'); }
+    catch (err) { toast('Kopiranje nije uspjelo — koristi Preuzmi'); }
+  };
   // raspored u kolone kad se termini preklapaju (kao Outlook)
   function lanes(list) {
     const out = {}, L = [...list].sort((p, q) => p.s - q.s); let grp = [], ends = [], gEnd = 0;
@@ -679,7 +735,7 @@
     flush(); return out;
   }
   const PCOL = ['#f6e7c9', '#dcebf7', '#e3f1e1', '#f7dfe6', '#e9e1f5', '#f9e3d3'];
-  function printHtml(title, L, k) {
+  function printHtml(title, L, k, img) {
     L = [...L].sort((p, q) => p.s - q.s);
     const nm = a => { const c = clients.find(x => x.id === a.client_id); return c ? c.name : a.client_name || ''; };
     const st = staff.filter(s => s.active || L.some(a => a.staff_id === s.id));
@@ -747,8 +803,9 @@
       .mc{min-height:92px;border-left:1px solid #ddd;border-top:1px solid #ddd;padding:3px}.mc:nth-child(6n+1){border-left:0}.mc.om{background:#fafafa;color:#aaa}
       .md{font-weight:bold;font-size:11px;margin-bottom:2px}.mi{font-size:8.8px;line-height:1.2;padding:1px 3px;border-radius:2px;margin-bottom:2px;border-left:2px solid rgba(0,0,0,.4)}
       .foot{margin-top:6px;color:#999;font-size:9px}
+      ${img ? 'body{padding:18px 20px;background:#fff;font-size:11px}.ev{font-size:10.5px}.mi{font-size:9.8px}.off{background:#f3f3f3}' : ''}
     </style></head><body>
-      <h1>LAX Studio — ${esc(title)}</h1><div class="sub">Odštampano ${dmy(new Date())} u ${hm(new Date())}</div>
+      <h1>LAX Studio — ${esc(title)}</h1><div class="sub">${img ? 'Stanje' : 'Odštampano'} ${dmy(new Date())} u ${hm(new Date())}</div>
       ${body}<div class="foot">www.lax.ba</div></body></html>`;
   }
 
