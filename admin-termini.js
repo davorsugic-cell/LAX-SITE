@@ -141,7 +141,7 @@
           const t = Math.max(0, top(a.s)), h = Math.max(22, top(a.e) - t), c = clients.find(x => x.id === a.client_id);
           const ln = lane[a.id] || {k: 0, n: 1}, w = 100 / ln.n;
           return `<div class="ap ${a.status}" data-ap="${a.id}" style="top:${t + 2}px;height:${h - 4}px${ln.n > 1 ? `;left:calc(${ln.k * w}% + 3px);right:auto;width:calc(${w}% - 6px)` : ''}">
-            <div class="t">${hm(a.s)} – ${hm(a.e)}</div><div class="u">${esc(a.service_name)}</div>
+            <div class="t">${hm(a.s)} – ${hm(a.e)}${a.price != null && a.price !== '' ? ` · <b class="apr">${km(a.price)}</b>` : ''}</div><div class="u">${esc(a.service_name)}</div>
             <div class="k">${esc(c ? c.name : a.client_name || '')}${c ? ` · <span class="pts">♥ ${c.points}</span>` : ''}</div>
             <div class="tags" ${h < 80 ? 'style="top:6px;bottom:auto"' : ''}>${a.needs_cabin ? '<span class="cab">KABINA</span>' : ''}${Array.isArray(a.extras) && a.extras.length ? '<span class="xt">+ DODATAK</span>' : ''}<span class="sts">${STN[a.status]}</span></div></div>`;
         }).join('') + '</div>';
@@ -588,9 +588,9 @@
   $('#rmmX').onclick = closeRm; $('#rmmOk').onclick = closeRm;
   $('#rmm').addEventListener('click', e => { if (e.target.id === 'rmm') closeRm(); });
 
-  // ---------- dnevni promet (samo admin): završeni termini ----------
+  // ---------- dnevni promet (admin i radnice): završeni termini ----------
   function drawProm(d, list, st) {
-    const box = $('#apProm'); if (!WHO.admin) return box.classList.add('hide');
+    const box = $('#apProm');
     const done = list.filter(a => a.status === 'zavrsen'), sched = list.filter(a => a.status === 'zakazan');
     const sum = L => L.reduce((t, a) => t + (+a.price || 0), 0);
     const art = done.reduce((t, a) => t + (Array.isArray(a.extras) ? a.extras.filter(x => x.variant_id).reduce((u, x) => u + x.price * x.qty, 0) : 0), 0);
@@ -601,6 +601,119 @@
       <div class="pm"><small>Ova sedmica</small><b>${km(sum(wk))}</b><i>${wk.length} završenih</i></div>
       <div class="pms">${per.map(x => `<span>${esc(x.n)} <b>${km(x.v)}</b></span>`).join('')}</div>`;
     box.classList.remove('hide');
+  }
+
+  // =========================================================
+  // ŠTAMPA: dnevni, sedmični i mjesečni pregled termina
+  // =========================================================
+  document.body.insertAdjacentHTML('beforeend', `<div class="md hide" id="prm"><div class="mdb" style="max-width:440px">
+    <div class="mdh"><h3>Štampaj pregled</h3><button class="x" id="prmX">×</button></div>
+    <div style="display:grid;gap:8px">
+      <button class="btn" data-pr="dan" id="prDan">Dan</button>
+      <button class="btn" data-pr="sedmica" id="prSed">Sedmica</button>
+      <button class="btn" data-pr="mjesec" id="prMj">Mjesec</button>
+    </div>
+    <label class="ck" style="margin-top:14px"><input type="checkbox" id="prOtk"> Uključi otkazane i „nije došla“</label>
+  </div></div>`);
+  const closePr = () => $('#prm').classList.add('hide');
+  $('#prBtn').onclick = () => {
+    const d = dayDate(day), we = new Date(weekStart); we.setDate(we.getDate() + 5);
+    $('#prDan').textContent = 'Dan — ' + DN[d.getDay()] + ' ' + ddmm(d) + d.getFullYear() + '.';
+    $('#prSed').textContent = 'Sedmica — ' + ddmm(weekStart) + ' – ' + ddmm(we) + we.getFullYear() + '.';
+    $('#prMj').textContent = 'Mjesec — ' + MN[d.getMonth()] + ' ' + d.getFullYear() + '.';
+    $('#prm').classList.remove('hide');
+  };
+  $('#prmX').onclick = closePr; $('#prm').addEventListener('click', e => { if (e.target.id === 'prm') closePr(); });
+  $('#prm').addEventListener('click', async e => {
+    const b = e.target.closest('[data-pr]'); if (!b) return;
+    const w = window.open('', '_blank'); // odmah, da preglednik ne blokira prozor
+    if (!w) return toast('Preglednik je blokirao novi prozor — dozvoli pop-up za lax.ba');
+    w.document.write('<p style="font-family:sans-serif;padding:30px">Pripremam pregled…</p>');
+    const k = b.dataset.pr, d = dayDate(day); let from, to, title;
+    if (k === 'dan') { from = new Date(d); to = new Date(d); to.setDate(to.getDate() + 1); title = 'Dnevni pregled — ' + DN[d.getDay()] + ' ' + ddmm(d) + d.getFullYear() + '.'; }
+    else if (k === 'sedmica') { from = new Date(weekStart); to = new Date(weekStart); to.setDate(to.getDate() + 7); const e2 = new Date(weekStart); e2.setDate(e2.getDate() + 5); title = 'Sedmični pregled — ' + ddmm(from) + ' – ' + ddmm(e2) + e2.getFullYear() + '.'; }
+    else { from = new Date(d.getFullYear(), d.getMonth(), 1); to = new Date(d.getFullYear(), d.getMonth() + 1, 1); title = 'Mjesečni pregled — ' + MN[d.getMonth()] + ' ' + d.getFullYear() + '.'; }
+    const {data, error} = await sb.from('lax_appointments').select('*').gte('starts_at', from.toISOString()).lt('starts_at', to.toISOString()).order('starts_at');
+    if (error) { w.document.body.innerHTML = 'Greška: ' + esc(error.message); return; }
+    const all = $('#prOtk').checked;
+    const L = (data || []).map(a => ({...a, s: new Date(a.starts_at), e: new Date(a.ends_at)})).filter(a => all || live(a));
+    w.document.open(); w.document.write(printHtml(title, L, k)); w.document.close();
+    closePr(); setTimeout(() => { try { w.focus(); w.print(); } catch (err) {} }, 400);
+  });
+  // raspored u kolone kad se termini preklapaju (kao Outlook)
+  function lanes(list) {
+    const out = {}, L = [...list].sort((p, q) => p.s - q.s); let grp = [], ends = [], gEnd = 0;
+    const flush = () => { grp.forEach(a => out[a.id].n = ends.length); grp = []; ends = []; };
+    L.forEach(a => { if (grp.length && a.s >= gEnd) flush(); let k = ends.findIndex(e => e <= a.s); if (k < 0) { k = ends.length; ends.push(0); } ends[k] = a.e; out[a.id] = {k}; grp.push(a); gEnd = Math.max(gEnd, +a.e); });
+    flush(); return out;
+  }
+  const PCOL = ['#f6e7c9', '#dcebf7', '#e3f1e1', '#f7dfe6', '#e9e1f5', '#f9e3d3'];
+  function printHtml(title, L, k) {
+    L = [...L].sort((p, q) => p.s - q.s);
+    const nm = a => { const c = clients.find(x => x.id === a.client_id); return c ? c.name : a.client_name || ''; };
+    const st = staff.filter(s => s.active || L.some(a => a.staff_id === s.id));
+    const col = id => PCOL[Math.max(0, st.findIndex(s => s.id === id)) % PCOL.length];
+    const sn = id => (st.find(x => x.id === id) || {}).name || '';
+    const cls = a => a.status === 'otkazan' || a.status === 'nije_dosla' ? ' x' : '';
+    const legend = `<div class="leg">${st.map(s => `<span><i style="background:${col(s.id)}"></i>${esc(s.name)}</span>`).join('')}</div>`;
+    let body = '', land = k !== 'dan';
+    const grid = (cols, colLabels, itemsFor, showStaff) => {
+      // sati: od najranijeg do najkasnijeg radnog vremena (proširi ako termin ispada van)
+      let h0 = 24, h1 = 0; cols.forEach(c => { const hh = HOURS[c.date.getDay()]; if (hh) { h0 = Math.min(h0, hh[0]); h1 = Math.max(h1, hh[1]); } });
+      L.forEach(a => { h0 = Math.min(h0, a.s.getHours()); h1 = Math.max(h1, a.e.getHours() + (a.e.getMinutes() ? 1 : 0)); });
+      if (h0 >= h1) { h0 = 9; h1 = 19; }
+      const PH = land ? 46 : 60, H = (h1 - h0) * PH;
+      const top = t => ((t.getHours() - h0) * 60 + t.getMinutes()) / 60 * PH;
+      let html = `<div class="cal" style="grid-template-columns:44px repeat(${cols.length},1fr)"><div class="ch"></div>${colLabels.map(l => `<div class="ch">${l}</div>`).join('')}`;
+      html += `<div class="tc" style="height:${H}px">${Array.from({length: h1 - h0}, (_, i) => `<span style="top:${i * PH}px">${pad(h0 + i)}:00</span>`).join('')}</div>`;
+      cols.forEach(c => {
+        const items = itemsFor(c), ln = lanes(items), hh = HOURS[c.date.getDay()];
+        const closed = hh ? `<div class="off" style="top:0;height:${Math.max(0, (hh[0] - h0) * PH)}px"></div><div class="off" style="top:${(hh[1] - h0) * PH}px;bottom:0"></div>` : '<div class="off" style="top:0;bottom:0"></div>';
+        html += `<div class="dc" style="height:${H}px">${Array.from({length: (h1 - h0) * 2}, (_, i) => `<div class="hl${i % 2 ? ' h' : ''}" style="top:${i * PH / 2}px"></div>`).join('')}${closed}` +
+          items.map(a => { const l = ln[a.id], w = 100 / l.n, t = top(a.s), ht = Math.max(16, top(a.e) - t);
+            return `<div class="ev${cls(a)}" style="top:${t}px;height:${ht - 2}px;left:calc(${l.k * w}% + 2px);width:calc(${w}% - 4px);background:${col(a.staff_id)}"><b>${hm(a.s)}–${hm(a.e)}</b> ${esc(nm(a))}<br>${esc(a.service_name)}${showStaff ? ' · <em>' + esc(sn(a.staff_id)) + '</em>' : ''}${a.note ? '<br><small>' + esc(a.note) + '</small>' : ''}</div>`; }).join('') + '</div>';
+      });
+      return html + '</div>';
+    };
+    if (k === 'dan') {
+      const d = dayDate(day);
+      body = grid(st.map(s => ({date: d, s})), st.map(s => `<i style="background:${col(s.id)}"></i>${esc(s.name)}`), c => L.filter(a => a.staff_id === c.s.id && dkey(a.s) === dkey(d)), false);
+    } else if (k === 'sedmica') {
+      const cols = [1, 2, 3, 4, 5, 6].map(i => ({date: dayDate(i)}));
+      body = legend + grid(cols, cols.map(c => `${DN[c.date.getDay()]} ${ddmm(c.date)}`), c => L.filter(a => dkey(a.s) === dkey(c.date)), true);
+    } else {
+      const d = dayDate(day), first = new Date(d.getFullYear(), d.getMonth(), 1), start = monday(first.getDay() === 0 ? new Date(first.getTime() + 86400000) : first), last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      let cells = '';
+      for (let w = new Date(start); w <= last; w.setDate(w.getDate() + 7)) {
+        for (let i = 0; i < 6; i++) {
+          const c = new Date(w); c.setDate(c.getDate() + i); const inM = c.getMonth() === d.getMonth();
+          const items = L.filter(a => dkey(a.s) === dkey(c));
+          cells += `<div class="mc${inM ? '' : ' om'}"><div class="md">${c.getDate()}.</div>${items.map(a => `<div class="mi${cls(a)}" style="background:${col(a.staff_id)}"><b>${hm(a.s)}</b> ${esc(nm(a))} · ${esc(a.service_name)}</div>`).join('')}</div>`;
+        }
+      }
+      body = legend + `<div class="mon"><div class="mh">Pon</div><div class="mh">Uto</div><div class="mh">Sri</div><div class="mh">Čet</div><div class="mh">Pet</div><div class="mh">Sub</div>${cells}</div>`;
+    }
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
+      @page{size:A4 ${land ? 'landscape' : 'portrait'};margin:10mm}
+      *{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#222;font-size:10px;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      h1{font-size:16px;margin:0 0 2px}.sub{color:#777;margin-bottom:8px;font-size:10px}
+      .leg{display:flex;gap:14px;margin:0 0 8px;font-size:10.5px}.leg i,.ch i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;border:1px solid #bbb}
+      .cal{display:grid;border:1px solid #bbb;border-radius:4px}
+      .ch{padding:6px;font-weight:bold;font-size:11px;border-bottom:1px solid #bbb;border-left:1px solid #ddd;text-align:center;background:#f6f3ef}.ch:first-child{border-left:0}
+      .tc{position:relative}.tc span{position:absolute;right:5px;transform:translateY(2px);color:#777;font-size:9.5px}
+      .dc{position:relative;border-left:1px solid #ddd;overflow:hidden}.hl{position:absolute;left:0;right:0;border-top:1px solid #e3e3e3}.hl.h{border-top:1px dotted #eee}
+      .off{position:absolute;left:0;right:0;background:repeating-linear-gradient(45deg,#f4f4f4,#f4f4f4 4px,#fff 4px,#fff 8px)}
+      .ev{position:absolute;border:1px solid rgba(0,0,0,.18);border-left:3px solid rgba(0,0,0,.45);border-radius:3px;padding:2px 4px;font-size:9.5px;line-height:1.25;overflow:hidden}
+      .ev b{font-weight:bold}.ev em{font-style:normal;color:#555}.ev small{color:#555}
+      .x{opacity:.45;text-decoration:line-through}
+      .mon{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid #bbb;border-radius:4px}
+      .mh{background:#f6f3ef;font-weight:bold;text-align:center;padding:5px;border-bottom:1px solid #bbb;border-left:1px solid #ddd}.mh:first-child{border-left:0}
+      .mc{min-height:92px;border-left:1px solid #ddd;border-top:1px solid #ddd;padding:3px}.mc:nth-child(6n+1){border-left:0}.mc.om{background:#fafafa;color:#aaa}
+      .md{font-weight:bold;font-size:11px;margin-bottom:2px}.mi{font-size:8.8px;line-height:1.2;padding:1px 3px;border-radius:2px;margin-bottom:2px;border-left:2px solid rgba(0,0,0,.4)}
+      .foot{margin-top:6px;color:#999;font-size:9px}
+    </style></head><body>
+      <h1>LAX Studio — ${esc(title)}</h1><div class="sub">Odštampano ${dmy(new Date())} u ${hm(new Date())}</div>
+      ${body}<div class="foot">www.lax.ba</div></body></html>`;
   }
 
   // osvježi plan svake minute (druga radnica je možda nešto upisala)
