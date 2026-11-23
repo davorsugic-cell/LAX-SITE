@@ -153,6 +153,7 @@
     }).join('') + '</div></div>';
     if (!st.length) html = '<div class="card">Nema aktivnih radnica. Dodaj ih u kartici Radnice.</div>';
     $('#apGrid').innerHTML = html;
+    drawProm(d, list, st);
   }
   // najveći broj istovremenih kabinskih termina u [s,e)
   function cabinMax(s, e, excl) {
@@ -586,6 +587,21 @@
   const closeRm = () => { $('#rmm').classList.add('hide'); if (rmPick) { rmPick = null; loadReminders(); } };
   $('#rmmX').onclick = closeRm; $('#rmmOk').onclick = closeRm;
   $('#rmm').addEventListener('click', e => { if (e.target.id === 'rmm') closeRm(); });
+
+  // ---------- dnevni promet (samo admin): završeni termini ----------
+  function drawProm(d, list, st) {
+    const box = $('#apProm'); if (!WHO.admin) return box.classList.add('hide');
+    const done = list.filter(a => a.status === 'zavrsen'), sched = list.filter(a => a.status === 'zakazan');
+    const sum = L => L.reduce((t, a) => t + (+a.price || 0), 0);
+    const art = done.reduce((t, a) => t + (Array.isArray(a.extras) ? a.extras.filter(x => x.variant_id).reduce((u, x) => u + x.price * x.qty, 0) : 0), 0);
+    const wk = appts.filter(a => a.status === 'zavrsen');
+    const per = st.map(s => ({n: s.name, v: sum(done.filter(a => a.staff_id === s.id))})).filter(x => x.v);
+    box.innerHTML = `<div class="pm main"><small>Promet · ${DN[d.getDay()]} ${ddmm(d)}</small><b>${km(sum(done))}</b><i>${done.length} ${done.length === 1 ? 'završen termin' : 'završenih termina'}${art ? ' · artikli ' + km(art) : ''}</i></div>
+      <div class="pm"><small>Još zakazano</small><b>${km(sum(sched))}</b><i>${sched.length} termina</i></div>
+      <div class="pm"><small>Ova sedmica</small><b>${km(sum(wk))}</b><i>${wk.length} završenih</i></div>
+      <div class="pms">${per.map(x => `<span>${esc(x.n)} <b>${km(x.v)}</b></span>`).join('')}</div>`;
+    box.classList.remove('hide');
+  }
 
   // osvježi plan svake minute (druga radnica je možda nešto upisala)
   setInterval(() => { if (READY && !$('#t-appts').classList.contains('hide') && $('#apm').classList.contains('hide')) loadWeek(); }, 60000);

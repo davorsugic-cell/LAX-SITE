@@ -143,6 +143,14 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 .lz{background:#fbf3e6;border-left:3px solid var(--gold)}.lv{background:#eef5ef;border-left:3px solid var(--green)}.ln{background:#faeeed;border-left:3px solid var(--red)}.lk2{background:#2b2420}.lc{background:#f3dddc}
 .rmd{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);order:-1;width:100%;margin-bottom:4px}.rmd .btn{padding:7px 12px;font-size:12px}
 .md a.btn,.lnkbox a.btn{color:var(--ink);text-decoration:none}
+.prom{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:0 0 12px}
+.prom .pm{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 16px;min-width:130px}
+.prom .pm small{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.prom .pm b{font-family:var(--serif);font-size:28px;font-weight:500;line-height:1.1}
+.prom .pm.main{background:#2b2420;border-color:#2b2420;color:#f7f1ea}.prom .pm.main small{color:var(--gold2)}
+.prom .pm.main b{color:#fff}.prom .pm b{display:block}.prom .pm i{display:block;font-style:normal;font-size:12px;color:var(--muted)}.prom .pm.main i{color:#cdbfae}
+.prom .pms{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+.prom .pms span{background:#fff;border:1px solid var(--line);border-radius:20px;padding:6px 12px}.prom .pms span b{color:var(--ink);font-weight:500}
 .xbox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:2px 0 12px}
 .xadd{display:grid;grid-template-columns:1fr 64px auto;gap:6px;margin-top:6px}.xadd .btn{padding:8px 12px;font-size:12px}
 .xi{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:6px 0;border-bottom:1px dashed var(--line)}.xi span{flex:1}.xi b{font-weight:500;white-space:nowrap}
@@ -254,6 +262,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="rmBtn">🔔 Podsjetnici za sutra<span class="badge hide" id="rmN"></span></button><button class="btn btn-gold" id="apNew">+ Novi termin</button></div></div>
       <div class="rmbar hide" id="rmBar"><span id="rmBarT"></span><button class="btn" id="rmBarGo">Otvori podsjetnike</button></div>
       <div class="days" id="apDays"></div>
+      <div class="prom hide" id="apProm"></div>
       <div class="apwrap" id="apGrid"><div class="card" style="color:var(--muted)">Učitavanje…</div></div>
       <div class="leg"><span><i class="lz"></i>Zakazan</span><span><i class="lv"></i>Završen (bodovi dodani)</span><span><i class="ln"></i>Nije došla / otkazan</span><span><i class="lk2"></i>Treba kabinu</span><span><i class="lc"></i>Obje kabine zauzete</span></div>
       <p class="hint">Klikni na prazno polje u koloni radnice da zakažeš termin u to vrijeme, ili na termin da ga otvoriš.</p>
