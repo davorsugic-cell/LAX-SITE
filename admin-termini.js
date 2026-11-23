@@ -41,7 +41,7 @@
   const dmy = v => { const d = new Date(v); return d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + '.'; };
 
   let WHO = {admin: false, staff: null}, READY = false;
-  let staff = [], services = [], clients = [], rewards = [], appts = [];
+  let staff = [], services = [], clients = [], rewards = [], appts = [], shopItems = [];
   let weekStart = monday(new Date()), day = todayIdx(), DAYH0 = 9;
 
   function monday(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); const w = (x.getDay() + 6) % 7; x.setDate(x.getDate() - w); return x; }
@@ -78,6 +78,13 @@
     if (r[0].error) { $('#apGrid').innerHTML = '<div class="card">Plan termina još nije podešen: pokreni <b>sql/termini.sql</b> u Supabase. (' + esc(r[0].error.message) + ')</div>'; return; }
     staff = r[0].data || []; services = r[1].data || []; clients = r[2].data || []; rewards = r[3].data || [];
     drawClientDL(); drawClients();
+    // artikli iz web shopa koji se mogu prodati uz termin
+    const pr = await sb.from('lax_products').select('id,name,active,lax_variants(id,price,length_cm,color,label,active)').eq('active', true).order('sort');
+    shopItems = [];
+    (pr.data || []).forEach(p => (p.lax_variants || []).filter(v => v.active !== false).forEach(v => {
+      const det = [v.length_cm ? v.length_cm + ' cm' : '', v.color, v.label].filter(Boolean).join(' · ');
+      shopItems.push({id: v.id, name: p.name + (det ? ' · ' + det : ''), price: +v.price || 0});
+    }));
   }
   async function reloadClients() { const r = await sb.from('lax_client_balance').select('*').order('name'); if (!r.error) { clients = r.data; drawClientDL(); drawClients(); } }
 
@@ -136,7 +143,7 @@
           return `<div class="ap ${a.status}" data-ap="${a.id}" style="top:${t + 2}px;height:${h - 4}px${ln.n > 1 ? `;left:calc(${ln.k * w}% + 3px);right:auto;width:calc(${w}% - 6px)` : ''}">
             <div class="t">${hm(a.s)} – ${hm(a.e)}</div><div class="u">${esc(a.service_name)}</div>
             <div class="k">${esc(c ? c.name : a.client_name || '')}${c ? ` · <span class="pts">♥ ${c.points}</span>` : ''}</div>
-            <div class="tags" ${h < 80 ? 'style="top:6px;bottom:auto"' : ''}>${a.needs_cabin ? '<span class="cab">KABINA</span>' : ''}<span class="sts">${STN[a.status]}</span></div></div>`;
+            <div class="tags" ${h < 80 ? 'style="top:6px;bottom:auto"' : ''}>${a.needs_cabin ? '<span class="cab">KABINA</span>' : ''}${Array.isArray(a.extras) && a.extras.length ? '<span class="xt">+ DODATAK</span>' : ''}<span class="sts">${STN[a.status]}</span></div></div>`;
         }).join('') + '</div>';
     });
     html += `<div class="apcab" style="height:${rows * RH}px">` + Array.from({length: rows}, (_, i) => {
@@ -198,6 +205,11 @@
     $('#apmMin').value = Math.round((cur.e - cur.s) / 60000);
     $('#apmPrice').value = cur.price ?? '';
     $('#apmNote').value = cur.note || '';
+    xItems = Array.isArray(cur.extras) ? cur.extras.filter(x => x.variant_id).map(x => ({...x})) : [];
+    $('#apmXOther').checked = !!(Array.isArray(cur.extras) && cur.extras.some(x => x.other));
+    xOtherBase = $('#apmXOther').checked ? +$('#apmPrice').value : null;
+    $('#apmXSel').innerHTML = '<option value="">— artikl iz shopa —</option>' + shopItems.map(i => `<option value="${i.id}">${esc(i.name)} · ${km(i.price)}</option>`).join('');
+    $('#apmXQty').value = 1; drawX(); durHint();
     $('#apmWarn').classList.add('hide');
     $('#apmStatus').classList.toggle('hide', !a);
     $('#apmDel').classList.toggle('hide', !a);
@@ -231,8 +243,44 @@
   $('#apmClient').addEventListener('input', clientInfo);
   $('#apmSvc').onchange = () => {
     const s = services.find(x => x.id === $('#apmSvc').value); if (!s) return;
-    $('#apmMin').value = s.duration_min || 60; $('#apmPrice').value = s.price ?? '';
+    $('#apmMin').value = s.duration_min || 60; durHint();
+    $('#apmPrice').value = (+s.price || 0) + xSum(); xOtherBase = $('#apmXOther').checked ? +$('#apmPrice').value : null; checkX();
   };
+  // trajanje iz cjenovnika
+  function durHint() {
+    const s = services.find(x => x.id === $('#apmSvc').value);
+    $('#apmDurHint').textContent = s && !s.duration_min ? 'Trajanje ove usluge nije upisano u Cjenovniku — uzeto je 60 min. Upiši ga u Cjenovnik (polje Min).' : '';
+  }
+  // ---------- dodaci uz uslugu ----------
+  let xItems = [], xOtherBase = null;
+  const xSum = () => xItems.reduce((t, x) => t + x.price * x.qty, 0);
+  function drawX() {
+    $('#apmXList').innerHTML = xItems.map((x, i) => `<div class="xi"><span>${esc(x.name)} × ${x.qty}</span><b>${km(x.price * x.qty)}</b><button type="button" data-xr="${i}" title="Ukloni">×</button></div>`).join('');
+    checkX();
+  }
+  function setPriceDelta(d) { const p = (+$('#apmPrice').value || 0) + d; $('#apmPrice').value = Math.round(p * 100) / 100; if (xOtherBase != null) xOtherBase += d; }
+  $('#apmXAdd').onclick = () => {
+    const it = shopItems.find(i => i.id === $('#apmXSel').value); if (!it) return toast('Izaberi artikl');
+    const q = Math.max(1, parseInt($('#apmXQty').value) || 1);
+    const ex = xItems.find(x => x.variant_id === it.id);
+    if (ex) ex.qty += q; else xItems.push({variant_id: it.id, name: it.name, price: it.price, qty: q});
+    setPriceDelta(it.price * q); $('#apmXSel').value = ''; $('#apmXQty').value = 1; drawX();
+  };
+  $('#apmXList').addEventListener('click', e => { const b = e.target.closest('[data-xr]'); if (!b) return; const x = xItems.splice(+b.dataset.xr, 1)[0]; setPriceDelta(-x.price * x.qty); drawX(); });
+  $('#apmXOther').onchange = () => { xOtherBase = $('#apmXOther').checked ? +$('#apmPrice').value || 0 : null; checkX(); };
+  // ako je dodano nešto van shopa: cijena mora biti promijenjena i napomena upisana
+  function checkX() {
+    let msg = '';
+    if ($('#apmXOther').checked) {
+      const changed = (+$('#apmPrice').value || 0) !== xOtherBase, note = $('#apmNote').value.trim().length > 2;
+      if (!changed && !note) msg = 'Promijeni cijenu i u napomenu upiši šta je dodano.';
+      else if (!changed) msg = 'Promijeni cijenu (dodaj iznos za ono što je dodano).';
+      else if (!note) msg = 'U napomenu upiši šta je dodano.';
+    }
+    $('#apmXHint').textContent = msg; $('#apmSave').disabled = !!msg;
+    $('#apmStatus').querySelectorAll('[data-st="zavrsen"]').forEach(b => b.disabled = !!msg);
+  }
+  $('#apmPrice').addEventListener('input', checkX); $('#apmNote').addEventListener('input', checkX);
   function formStart() { const [y, mo, d] = $('#apmDate').value.split('-').map(Number), [h, mi] = $('#apmTime').value.split(':').map(Number); return new Date(y, mo - 1, d, h, mi); }
 
   $('#apmSave').onclick = () => saveAp();
@@ -264,7 +312,11 @@
         if (nf) $('#apmNF').onclick = () => { $('#apmTime').value = hm(nf); saveAp(nf); };
         return;
       }
-      toast(cur.id ? 'Termin izmijenjen' : 'Termin zakazan'); closeAp(); loadWeek();
+      const extras = xItems.map(x => ({variant_id: x.variant_id, name: x.name, price: x.price, qty: x.qty})).concat($('#apmXOther').checked ? [{other: true, note: $('#apmNote').value.trim()}] : []);
+      const xu = await sb.from('lax_appointments').update({extras}).eq('id', data);
+      if (xu.error && (extras.length || (cur.extras && cur.extras.length))) toast('Termin sačuvan, ali dodaci nisu (pokreni sql/dodaci.sql)');
+      else toast(cur.id ? 'Termin izmijenjen' : 'Termin zakazan');
+      closeAp(); loadWeek();
       if (pendingWelcome && c && c.id === pendingWelcome) { pendingWelcome = null; offerSend('Novi klijent — pošalji link dobrodošlice', c, welcomeMsg(c), true); }
     } catch (err) { $('#apmWarn').innerHTML = '<b>' + esc(err.message || err) + '</b>'; $('#apmWarn').classList.remove('hide'); }
     finally { btn.disabled = false; }
@@ -272,6 +324,8 @@
   $('#apmStatus').addEventListener('click', async e => {
     const b = e.target.closest('[data-st]'); if (!b || !cur.id) return;
     const pr = $('#apmPrice').value === '' ? null : +$('#apmPrice').value;
+    const extras = xItems.map(x => ({variant_id: x.variant_id, name: x.name, price: x.price, qty: x.qty})).concat($('#apmXOther').checked ? [{other: true, note: $('#apmNote').value.trim()}] : []);
+    await sb.from('lax_appointments').update({extras, note: $('#apmNote').value.trim() || null}).eq('id', cur.id);
     const {data, error} = await sb.rpc('lax_set_status', {p_id: cur.id, p_status: b.dataset.st, p_price: pr});
     if (error) return toast('Greška: ' + error.message);
     toast(b.dataset.st === 'zavrsen' ? (data.points ? `Završeno · +${data.points} bodova${data.double ? ' (dopuna ×2)' : ''}` : 'Završeno') : 'Status: ' + STN[b.dataset.st]);

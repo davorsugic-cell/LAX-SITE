@@ -143,6 +143,11 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 .lz{background:#fbf3e6;border-left:3px solid var(--gold)}.lv{background:#eef5ef;border-left:3px solid var(--green)}.ln{background:#faeeed;border-left:3px solid var(--red)}.lk2{background:#2b2420}.lc{background:#f3dddc}
 .rmd{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);order:-1;width:100%;margin-bottom:4px}.rmd .btn{padding:7px 12px;font-size:12px}
 .md a.btn,.lnkbox a.btn{color:var(--ink);text-decoration:none}
+.xbox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:2px 0 12px}
+.xadd{display:grid;grid-template-columns:1fr 64px auto;gap:6px;margin-top:6px}.xadd .btn{padding:8px 12px;font-size:12px}
+.xi{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:6px 0;border-bottom:1px dashed var(--line)}.xi span{flex:1}.xi b{font-weight:500;white-space:nowrap}
+.xi button{border:0;background:none;color:var(--red);font-size:18px;line-height:1;cursor:pointer}
+.ap .tags .xt{background:#f5e3c4;color:#7a5410}
 .rmbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fdf0ef;border:1px solid #e9a9a9;color:#a12828;border-radius:14px;padding:10px 14px;margin:0 0 12px;font-size:14px}
 .rmbar .btn{padding:7px 14px;font-size:12px;border-color:#e9a9a9;color:#a12828;background:#fff}
 #rmBtn .badge{display:inline-block;min-width:20px;padding:1px 7px;border-radius:12px;background:#d93636;color:#fff;font-size:11px;font-weight:600;margin-left:7px;letter-spacing:0}
@@ -314,6 +319,14 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
   <div class="f"><label class="l">Usluga</label><select id="apmSvc"></select></div>
   <div class="row2"><div class="f"><label class="l">Radnica</label><select id="apmStaff"></select></div><div class="f"><label class="l">Datum</label><input type="date" id="apmDate"></div></div>
   <div class="row3"><div class="f"><label class="l">Početak</label><input type="time" id="apmTime" step="900"></div><div class="f"><label class="l">Trajanje (min)</label><input type="number" id="apmMin" step="5"></div><div class="f"><label class="l">Cijena KM</label><input type="number" id="apmPrice" step="0.5"></div></div>
+  <div class="pt" id="apmDurHint" style="color:var(--muted);margin:-4px 0 8px"></div>
+  <div class="xbox">
+    <label class="l">Dodaci uz uslugu</label>
+    <div id="apmXList"></div>
+    <div class="xadd"><select id="apmXSel"></select><input type="number" id="apmXQty" value="1" min="1" step="1"><button class="btn" id="apmXAdd" type="button">+ Dodaj artikl</button></div>
+    <label class="ck" style="margin-top:8px"><input type="checkbox" id="apmXOther"> Dodano nešto što nije u shopu</label>
+    <div class="pt" id="apmXHint" style="color:#a12828"></div>
+  </div>
   <div class="f"><label class="l">Napomena</label><input id="apmNote"></div>
   <div class="warn hide" id="apmWarn"></div>
   <div class="stbtns hide" id="apmStatus"><span>Status:</span><button class="btn s-ok" data-st="zavrsen">✓ Završen</button><button class="btn" data-st="nije_dosla">Nije došla</button><button class="btn" data-st="otkazan">Otkazan</button><button class="btn" data-st="zakazan">Vrati na zakazan</button></div>
