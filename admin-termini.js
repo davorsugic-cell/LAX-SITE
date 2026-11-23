@@ -245,6 +245,34 @@
     b.classList.remove('hide');
   }
   $('#apmClient').addEventListener('input', clientInfo);
+  // padajuća lista klijenata sa semaforom
+  let sugI = -1, sugL = [];
+  const sugBox = $('#apmSug');
+  function drawSug() {
+    const q = $('#apmClient').value.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+    if (findClient(q)) { sugBox.classList.add('hide'); return; }
+    sugL = clients.filter(c => !q || c.name.toLowerCase().includes(q) || (qd.length >= 3 && (c.phone || '').replace(/\D/g, '').includes(qd))).slice(0, 8);
+    sugI = -1;
+    if (!sugL.length) { sugBox.innerHTML = q ? '<div class="nw">Nema u bazi — biće dodan kao novi klijent</div>' : ''; sugBox.classList.toggle('hide', !q); return; }
+    sugBox.innerHTML = sugL.map((c, i) => `<div data-i="${i}"><b>${esc(c.name)}</b>${sem(c)}<small>${esc(c.phone || '')} · ♥ ${c.points}</small></div>`).join('');
+    sugBox.classList.remove('hide');
+  }
+  function pickSug(i) {
+    const c = sugL[i]; if (!c) return;
+    $('#apmClient').value = c.name + (c.phone ? ' · ' + c.phone : '');
+    sugBox.classList.add('hide'); clientInfo();
+  }
+  $('#apmClient').addEventListener('input', drawSug);
+  $('#apmClient').addEventListener('focus', drawSug);
+  $('#apmClient').addEventListener('blur', () => setTimeout(() => sugBox.classList.add('hide'), 150));
+  $('#apmClient').addEventListener('keydown', e => {
+    if (sugBox.classList.contains('hide') || !sugL.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); sugI = (sugI + (e.key === 'ArrowDown' ? 1 : -1) + sugL.length) % sugL.length;
+      [...sugBox.children].forEach((d, k) => d.classList.toggle('on', k === sugI)); }
+    else if (e.key === 'Enter' && sugI >= 0) { e.preventDefault(); pickSug(sugI); }
+    else if (e.key === 'Escape') sugBox.classList.add('hide');
+  });
+  sugBox.addEventListener('mousedown', e => { const d = e.target.closest('[data-i]'); if (d) { e.preventDefault(); pickSug(+d.dataset.i); } });
   $('#apmSvc').onchange = () => {
     const s = services.find(x => x.id === $('#apmSvc').value); if (!s) return;
     $('#apmMin').value = s.duration_min || 60; durHint();
@@ -350,7 +378,7 @@
   // =========================================================
   // KLIJENTICE
   // =========================================================
-  function drawClientDL() { $('#clDL').innerHTML = clients.map(c => `<option value="${esc(c.name + (c.phone ? ' · ' + c.phone : ''))}">`).join(''); }
+  function drawClientDL() { if ($('#clDL')) $('#clDL').innerHTML = clients.map(c => `<option value="${esc(c.name + (c.phone ? ' · ' + c.phone : ''))}">`).join(''); }
   function drawClients() {
     if (!$('#clList')) return;
     const q = ($('#clQ').value || '').trim().toLowerCase(), L = clients.filter(c => !q || c.name.toLowerCase().includes(q) || (c.phone || '').replace(/\D/g, '').includes(q.replace(/\D/g, '') || '§'));
@@ -365,7 +393,7 @@
   let cc = null;
   async function openCl(c) {
     cc = c ? {...c} : {id: null, name: '', phone: '', birthday: null, consent: false, note: ''};
-    $('#clmT').textContent = c ? c.name : 'Novi klijent';
+    $('#clmT').innerHTML = c ? esc(c.name) + sem(c) : 'Novi klijent';
     $('#clmName').value = cc.name; $('#clmPhone').value = cc.phone || ''; $('#clmBday').value = cc.birthday || '';
     $('#clmConsent').checked = !!cc.consent; $('#clmNote').value = cc.note || '';
     $('#clmPts').classList.toggle('hide', !c); $('#clmDel').classList.toggle('hide', !c || !WHO.admin);
@@ -568,11 +596,11 @@
     if (!rmList.length) { $('#rmmList').innerHTML = '<div class="card" style="text-align:center;color:var(--muted)">Nema zakazanih termina za taj dan.</div>'; $('#rmmSum').textContent = ''; return; }
     $('#rmmList').innerHTML = rmList.map(a => {
       const c = phoneOf(a), st = staff.find(x => x.id === a.staff_id), sent = isSent(a);
-      const name = c ? c.name : (clients.find(x => x.id === a.client_id) || {}).name || a.client_name || 'bez klijenta';
+      const cx = c || clients.find(x => x.id === a.client_id), name = cx ? cx.name : a.client_name || 'bez klijenta';
       let acts = '<span class="nop">nema broja telefona</span>';
       if (c) { const L = sendLinks(c.phone, reminderMsg(a, c));
         acts = (sent ? '<span class="ok">✓ poslano</span>' : '') + `<a class="btn" data-rm="${a.id}" href="${L.v}" target="_blank">Viber</a><a class="btn" data-rm="${a.id}" href="${L.w}" target="_blank" rel="noopener">WhatsApp</a><a class="btn" data-rm="${a.id}" href="${L.s}">SMS</a>`; }
-      return `<div class="rmrow ${sent ? 'sent' : ''}"><div class="tm">${hm(a.s)}</div><div class="who"><b>${esc(name)}</b><small>${esc(a.service_name)} · ${esc(st ? st.name : '')}</small></div><div class="acts">${acts}</div></div>`;
+      return `<div class="rmrow ${sent ? 'sent' : ''}"><div class="tm">${hm(a.s)}</div><div class="who"><b>${esc(name)}${sem(cx)}</b><small>${esc(a.service_name)} · ${esc(st ? st.name : '')}</small></div><div class="acts">${acts}</div></div>`;
     }).join('');
     const withPh = rmList.filter(phoneOf), done = withPh.filter(isSent).length;
     $('#rmmSum').textContent = `Poslano ${done} od ${withPh.length}`;

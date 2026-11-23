@@ -135,6 +135,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 .ap:hover{box-shadow:0 4px 14px rgba(0,0,0,.12)}
 .ap.zavrsen{border-left-color:var(--green);background:#eef5ef}.ap.nije_dosla,.ap.otkazan{border-left-color:var(--red);background:#faeeed;opacity:.75}.ap.nije_dosla .u,.ap.otkazan .u{text-decoration:line-through}
 .ap .t{color:var(--muted);font-size:11px}.ap .k b{font-weight:600}.sem{display:inline-flex;gap:3px;margin-left:6px;vertical-align:1px}.sem i{min-width:17px;height:17px;padding:0 4px;border-radius:9px;font-style:normal;font-size:10px;font-weight:700;line-height:17px;text-align:center;color:#fff}
+.acw{position:relative}.sug{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);max-height:290px;overflow:auto;z-index:30}.sug div{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;font-size:14px;border-bottom:1px solid #f1ece6}.sug div:last-child{border-bottom:0}.sug div.on,.sug div:hover{background:#faf5ee}.sug b{font-weight:600}.sug small{margin-left:auto;color:var(--muted);font-size:12px;white-space:nowrap}.sug .nw{color:var(--muted);font-style:italic}
 .sem .g{background:#2f8a4a}.sem .y{background:#e0ad1c;color:#3a2a00}.sem .r{background:#c93636}
 .ap .t .apr{color:var(--ink);font-weight:600;font-size:12px}.ap.zavrsen .t .apr{color:var(--green)}.ap .u{font-weight:600;font-size:13px;margin:1px 0;padding-right:4px}.ap .k{color:#4a3f38}.pts{color:#b4506b;font-weight:600}
 .ap .tags{position:absolute;right:6px;bottom:6px;display:flex;gap:4px}.ap .tags span{font-size:9px;letter-spacing:.07em;border-radius:20px;padding:2px 7px;font-weight:600;background:#fff;color:var(--muted)}
@@ -324,7 +325,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 <datalist id="clDL"></datalist>
 <div class="md hide" id="apm"><div class="mdb">
   <div class="mdh"><h3 id="apmT">Termin</h3><span class="stb" id="apmSt"></span><button class="x" id="apmX">×</button></div>
-  <div class="f"><label class="l">Klijent</label><input id="apmClient" list="clDL" placeholder="Ime ili broj telefona" autocomplete="off"><div class="pt" id="apmPts"></div></div>
+  <div class="f"><label class="l">Klijent</label><div class="acw"><input id="apmClient" placeholder="Ime ili broj telefona" autocomplete="off"><div class="sug hide" id="apmSug"></div></div><div class="pt" id="apmPts"></div></div>
   <div class="f hide" id="apmNewC"><div class="row2"><div><label class="l">Telefon novog klijenta</label><input id="apmPhone" placeholder="065 …"></div>
     <label class="ck" style="margin-top:22px"><input type="checkbox" id="apmConsent"> Saglasnost za program vjernosti</label></div></div>
   <div class="f"><label class="l">Usluga</label><select id="apmSvc"></select></div>
