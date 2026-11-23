@@ -38,6 +38,8 @@
     $('#snd').classList.remove('hide');
   }
   const first = n => String(n || '').split(' ')[0];
+  // semafor klijenta: zeleno = završeni, žuto = završeni s pomjeranjem, crveno = otkazani / nije došla
+  const sem = c => c && c.done_ok != null ? `<span class="sem" title="Završeni · s pomjeranjem · otkazani/nije došla"><i class="g">${c.done_ok}</i><i class="y">${c.done_moved}</i><i class="r">${c.missed}</i></span>` : '';
   const dmy = v => { const d = new Date(v); return d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + '.'; };
 
   let WHO = {admin: false, staff: null}, READY = false;
@@ -141,8 +143,9 @@
           const t = Math.max(0, top(a.s)), h = Math.max(22, top(a.e) - t), c = clients.find(x => x.id === a.client_id);
           const ln = lane[a.id] || {k: 0, n: 1}, w = 100 / ln.n;
           return `<div class="ap ${a.status}" data-ap="${a.id}" style="top:${t + 2}px;height:${h - 4}px${ln.n > 1 ? `;left:calc(${ln.k * w}% + 3px);right:auto;width:calc(${w}% - 6px)` : ''}">
-            <div class="t">${hm(a.s)} – ${hm(a.e)}${a.price != null && a.price !== '' ? ` · <b class="apr">${km(a.price)}</b>` : ''}</div><div class="u">${esc(a.service_name)}</div>
-            <div class="k">${esc(c ? c.name : a.client_name || '')}${c ? ` · <span class="pts">♥ ${c.points}</span>` : ''}</div>
+            <div class="t">${hm(a.s)} – ${hm(a.e)}${a.price != null && a.price !== '' ? ` · <b class="apr">${km(a.price)}</b>` : ''}</div>
+            <div class="k"><b>${esc(c ? c.name : a.client_name || '')}</b>${sem(c)}${c ? ` <span class="pts">♥ ${c.points}</span>` : ''}</div>
+            <div class="u">${esc(a.service_name)}</div>
             <div class="tags" ${h < 80 ? 'style="top:6px;bottom:auto"' : ''}>${a.needs_cabin ? '<span class="cab">KABINA</span>' : ''}${Array.isArray(a.extras) && a.extras.length ? '<span class="xt">+ DODATAK</span>' : ''}<span class="sts">${STN[a.status]}</span></div></div>`;
         }).join('') + '</div>';
     });
@@ -228,7 +231,7 @@
     $('#apmNewC').classList.toggle('hide', !v || !!c);
     if (c) {
       const can = rewards.filter(r => r.active && r.points <= c.points).pop();
-      $('#apmPts').innerHTML = `♥ ${c.points} bodova` + (can ? ` — može iskoristiti: ${esc(can.name)}` : '');
+      $('#apmPts').innerHTML = sem(c) + ` ♥ ${c.points} bodova` + (can ? ` — može iskoristiti: ${esc(can.name)}` : '');
     } else $('#apmPts').textContent = v ? 'Novi klijent — upiši telefon ispod.' : '';
   }
   const reminderMsg = (a, c) => `Ćao ${first(c.name)}! Podsjećamo te na termin u LAX Studiju ${DN[a.s.getDay()].toLowerCase()} ${ddmm(a.s)} u ${hm(a.s)} (${a.service_name}). Vidimo se! 💛` +
@@ -352,7 +355,7 @@
     if (!$('#clList')) return;
     const q = ($('#clQ').value || '').trim().toLowerCase(), L = clients.filter(c => !q || c.name.toLowerCase().includes(q) || (c.phone || '').replace(/\D/g, '').includes(q.replace(/\D/g, '') || '§'));
     $('#clList').innerHTML = L.length ? `<div class="clh"><span>Ime</span><span>Telefon</span><span>Bodovi</span><span>Zadnja posjeta</span><span></span></div>` + L.map(c => `<div class="card clrow" data-cl="${c.id}">
-      <b>${esc(c.name)}</b><span>${esc(c.phone || '—')}</span><span class="pts">♥ ${c.points}</span><span>${c.last_visit ? dmy(c.last_visit) : '—'}</span><button class="btn">Otvori</button></div>`).join('')
+      <b>${esc(c.name)}${sem(c)}</b><span>${esc(c.phone || '—')}</span><span class="pts">♥ ${c.points}</span><span>${c.last_visit ? dmy(c.last_visit) : '—'}</span><button class="btn">Otvori</button></div>`).join('')
       : '<div class="card" style="text-align:center;color:var(--muted)">' + (clients.length ? 'Nema rezultata.' : 'Još nema klijenata. Dodaju se ovdje ili automatski pri zakazivanju termina.') + '</div>';
   }
   $('#clQ').addEventListener('input', drawClients);
@@ -655,6 +658,8 @@
     const col = id => PCOL[Math.max(0, st.findIndex(s => s.id === id)) % PCOL.length];
     const sn = id => (st.find(x => x.id === id) || {}).name || '';
     const cls = a => a.status === 'otkazan' || a.status === 'nije_dosla' ? ' x' : '';
+    const cl = a => clients.find(x => x.id === a.client_id);
+    const psem = a => { const c = cl(a); return c && c.done_ok != null ? `<span class="sm"><i class="g">${c.done_ok}</i><i class="y">${c.done_moved}</i><i class="r">${c.missed}</i></span>` : ''; };
     const legend = `<div class="leg">${st.map(s => `<span><i style="background:${col(s.id)}"></i>${esc(s.name)}</span>`).join('')}</div>`;
     let body = '', land = k !== 'dan';
     const grid = (cols, colLabels, itemsFor, showStaff) => {
@@ -662,7 +667,7 @@
       let h0 = 24, h1 = 0; cols.forEach(c => { const hh = HOURS[c.date.getDay()]; if (hh) { h0 = Math.min(h0, hh[0]); h1 = Math.max(h1, hh[1]); } });
       L.forEach(a => { h0 = Math.min(h0, a.s.getHours()); h1 = Math.max(h1, a.e.getHours() + (a.e.getMinutes() ? 1 : 0)); });
       if (h0 >= h1) { h0 = 9; h1 = 19; }
-      const PH = land ? 46 : 60, H = (h1 - h0) * PH;
+      const PH = land ? 58 : 64, H = (h1 - h0) * PH;
       const top = t => ((t.getHours() - h0) * 60 + t.getMinutes()) / 60 * PH;
       let html = `<div class="cal" style="grid-template-columns:44px repeat(${cols.length},1fr)"><div class="ch"></div>${colLabels.map(l => `<div class="ch">${l}</div>`).join('')}`;
       html += `<div class="tc" style="height:${H}px">${Array.from({length: h1 - h0}, (_, i) => `<span style="top:${i * PH}px">${pad(h0 + i)}:00</span>`).join('')}</div>`;
@@ -671,7 +676,7 @@
         const closed = hh ? `<div class="off" style="top:0;height:${Math.max(0, (hh[0] - h0) * PH)}px"></div><div class="off" style="top:${(hh[1] - h0) * PH}px;bottom:0"></div>` : '<div class="off" style="top:0;bottom:0"></div>';
         html += `<div class="dc" style="height:${H}px">${Array.from({length: (h1 - h0) * 2}, (_, i) => `<div class="hl${i % 2 ? ' h' : ''}" style="top:${i * PH / 2}px"></div>`).join('')}${closed}` +
           items.map(a => { const l = ln[a.id], w = 100 / l.n, t = top(a.s), ht = Math.max(16, top(a.e) - t);
-            return `<div class="ev${cls(a)}" style="top:${t}px;height:${ht - 2}px;left:calc(${l.k * w}% + 2px);width:calc(${w}% - 4px);background:${col(a.staff_id)}"><b>${hm(a.s)}–${hm(a.e)}</b> ${esc(nm(a))}<br>${esc(a.service_name)}${showStaff ? ' · <em>' + esc(sn(a.staff_id)) + '</em>' : ''}${a.note ? '<br><small>' + esc(a.note) + '</small>' : ''}</div>`; }).join('') + '</div>';
+            return `<div class="ev${cls(a)}" style="top:${t}px;height:${ht - 2}px;left:calc(${l.k * w}% + 2px);width:calc(${w}% - 4px);background:${col(a.staff_id)}"><b>${hm(a.s)}–${hm(a.e)}</b> · <em>${esc(sn(a.staff_id))}</em><br><strong>${esc(nm(a))}</strong>${psem(a)}<br>${esc(a.service_name)}${a.note ? '<br><small>' + esc(a.note) + '</small>' : ''}</div>`; }).join('') + '</div>';
       });
       return html + '</div>';
     };
@@ -688,7 +693,7 @@
         for (let i = 0; i < 6; i++) {
           const c = new Date(w); c.setDate(c.getDate() + i); const inM = c.getMonth() === d.getMonth();
           const items = L.filter(a => dkey(a.s) === dkey(c));
-          cells += `<div class="mc${inM ? '' : ' om'}"><div class="md">${c.getDate()}.</div>${items.map(a => `<div class="mi${cls(a)}" style="background:${col(a.staff_id)}"><b>${hm(a.s)}</b> ${esc(nm(a))} · ${esc(a.service_name)}</div>`).join('')}</div>`;
+          cells += `<div class="mc${inM ? '' : ' om'}"><div class="md">${c.getDate()}.</div>${items.map(a => `<div class="mi${cls(a)}" style="background:${col(a.staff_id)}"><b>${hm(a.s)}</b> · ${esc(sn(a.staff_id))}<br><strong>${esc(nm(a))}</strong>${psem(a)}<br>${esc(a.service_name)}</div>`).join('')}</div>`;
         }
       }
       body = legend + `<div class="mon"><div class="mh">Pon</div><div class="mh">Uto</div><div class="mh">Sri</div><div class="mh">Čet</div><div class="mh">Pet</div><div class="mh">Sub</div>${cells}</div>`;
@@ -706,6 +711,9 @@
       .ev{position:absolute;border:1px solid rgba(0,0,0,.18);border-left:3px solid rgba(0,0,0,.45);border-radius:3px;padding:2px 4px;font-size:9.5px;line-height:1.25;overflow:hidden}
       .ev b{font-weight:bold}.ev em{font-style:normal;color:#555}.ev small{color:#555}
       .x{opacity:.45;text-decoration:line-through}
+      .sm{margin-left:4px;white-space:nowrap}.sm i{display:inline-block;min-width:13px;height:13px;line-height:13px;border-radius:7px;text-align:center;font-style:normal;font-size:8px;font-weight:bold;color:#fff;margin-right:2px;padding:0 2px}
+      .sm .g{background:#2f8a4a}.sm .y{background:#d9a514;color:#3a2a00}.sm .r{background:#c93636}
+      .ev strong,.mi strong{font-weight:bold}
       .mon{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid #bbb;border-radius:4px}
       .mh{background:#f6f3ef;font-weight:bold;text-align:center;padding:5px;border-bottom:1px solid #bbb;border-left:1px solid #ddd}.mh:first-child{border-left:0}
       .mc{min-height:92px;border-left:1px solid #ddd;border-top:1px solid #ddd;padding:3px}.mc:nth-child(6n+1){border-left:0}.mc.om{background:#fafafa;color:#aaa}

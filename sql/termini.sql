@@ -182,7 +182,8 @@ begin
   else
     update lax_appointments set client_id = p_client, client_name = cname, staff_id = p_staff, service_id = p_service,
       service_name = nm, category = coalesce(cat, category), needs_cabin = cab, starts_at = p_starts, ends_at = e,
-      price = coalesce(p_price, price), note = nullif(trim(p_note),'')
+      price = coalesce(p_price, price), note = nullif(trim(p_note),''),
+      moved_count = moved_count + case when starts_at <> p_starts then 1 else 0 end
     where id = p_id returning id into rid;
   end if;
   return rid;
