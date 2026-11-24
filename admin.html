@@ -246,7 +246,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
       <button class="btn btn-gold" id="pubBtn">Objavi izmjene</button></div>
     <nav class="tabs" id="tabs">
       <button data-t="appts" class="on">Termini</button>
-      <button data-t="orders" class="adm">Narudžbe<span class="badge hide" id="newN"></span></button>
+      <button data-t="orders">Narudžbe<span class="badge hide" id="newN"></span></button>
       <button data-t="clients">Klijenti</button>
       <button data-t="check">Provjera</button>
       <button data-t="products" class="adm">Proizvodi</button>
@@ -254,7 +254,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
       <button data-t="services" class="adm">Cjenovnik</button>
       <button data-t="team" class="adm">Tim</button>
       <button data-t="delivery" class="adm">Dostava</button>
-      <button data-t="staff" class="adm">Radnice</button>
+      <button data-t="staff" class="adm">Radnici</button>
     </nav>
 
     <section id="t-orders" class="hide">
@@ -271,7 +271,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
       <div class="days" id="apDays"></div>
       <div class="apwrap" id="apGrid"><div class="card" style="color:var(--muted)">Učitavanje…</div></div>
       <div class="leg"><span><i class="lz"></i>Zakazan</span><span><i class="lv"></i>Završen (bodovi dodani)</span><span><i class="ln"></i>Nije došla / otkazan</span><span><i class="lk2"></i>Treba kabinu</span><span><i class="lc"></i>Obje kabine zauzete</span></div>
-      <p class="hint">Klikni na prazno polje u koloni radnice da zakažeš termin u to vrijeme, ili na termin da ga otvoriš.</p>
+      <p class="hint">Klikni na prazno polje u koloni radnika/ce da zakažeš termin u to vrijeme, ili na termin da ga otvoriš.</p>
     </section>
 
     <section id="t-clients" class="hide">
@@ -289,8 +289,8 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
     </section>
 
     <section id="t-staff" class="hide">
-      <div class="bar"><h2>Radnice</h2><button class="btn btn-gold" id="stNew">+ Nova radnica</button></div>
-      <p class="hint">Radnica vidi Termine, Klijente i Provjeru. Za prijavu klikni <b>🔑 Otvori šifru</b> — email i lozinka su već predloženi, a nakon toga dobiješ gotovu poruku s podacima za prijavu koju joj pošalješ na Viber ili WhatsApp.</p>
+      <div class="bar"><h2>Radnici</h2><button class="btn btn-gold" id="stNew">+ Novi radnik/ca</button></div>
+      <p class="hint">Radnik/ca vidi Termine, Narudžbe, Klijente i Provjeru. Za prijavu klikni <b>🔑 Otvori šifru</b> — email i lozinka su već predloženi, a nakon toga dobiješ gotovu poruku s podacima za prijavu koju mu/joj pošalješ na Viber ili WhatsApp.</p>
       <div id="stList"></div>
       <div class="bar" style="margin-top:34px"><h2>Nagrade programa vjernosti</h2><button class="btn btn-gold" id="rwNew">+ Nova nagrada</button></div>
       <div id="rwList"></div>
@@ -340,7 +340,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
   <div class="f hide" id="apmNewC"><div class="row2"><div><label class="l">Telefon novog klijenta</label><input id="apmPhone" placeholder="065 …"></div>
     <label class="ck" style="margin-top:22px"><input type="checkbox" id="apmConsent"> Saglasnost za program vjernosti</label></div></div>
   <div class="f"><label class="l">Usluga</label><select id="apmSvc"></select></div>
-  <div class="row2"><div class="f"><label class="l">Radnica</label><select id="apmStaff"></select></div><div class="f"><label class="l">Datum</label><input type="date" id="apmDate"></div></div>
+  <div class="row2"><div class="f"><label class="l">Radnik/ca</label><select id="apmStaff"></select></div><div class="f"><label class="l">Datum</label><input type="date" id="apmDate"></div></div>
   <div class="row3"><div class="f"><label class="l">Početak</label><input type="time" id="apmTime" step="900"></div><div class="f"><label class="l">Trajanje (min)</label><input type="number" id="apmMin" step="5"></div><div class="f"><label class="l">Cijena KM</label><input type="number" id="apmPrice" step="0.5"></div></div>
   <div class="pt" id="apmDurHint" style="color:var(--muted);margin:-4px 0 8px"></div>
   <div class="xbox">
@@ -432,7 +432,8 @@ async function boot() {
   if (!who || (!who.admin && !who.staff)) { await sb.auth.signOut(); return showLogin('Ovaj nalog nema pristup adminu.'); }
   $('#who').textContent = session.user.email;
   $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide');
-  if (who.admin) { pubStatus(); loadCategories().then(loadProducts); loadOrders(); loadServices(); loadTeam(); loadDelivery(); }
+  loadOrders();
+  if (who.admin) { pubStatus(); loadCategories().then(loadProducts); loadServices(); loadTeam(); loadDelivery(); }
   window.LAX_WHO = who; if (window.laxStaffInit) laxStaffInit(who);
 }
 function showLogin(msg) { $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); $('#loginMsg').textContent = msg || ''; }
@@ -820,7 +821,7 @@ $('#dlist').addEventListener('click', async e => {
 $('#newDel').onclick = () => { dels.push({name: 'Nova dostava', description: '', price: 0, needs_address: true, active: true, sort: dels.length + 1}); drawDel(); };
 
 // nove narudžbe: osvježi svake minute
-setInterval(() => { if (!$('#appView').classList.contains('hide') && !$('#pub').classList.contains('hide')) loadOrders(); }, 60000);
+setInterval(() => { if (!$('#appView').classList.contains('hide')) loadOrders(); }, 60000);
 // ---------- objava ----------
 const fdt = t => new Date(t).toLocaleString('bs-BA', {day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'});
 let PUB = null;

@@ -154,7 +154,7 @@
       const n = cabinMax(s, e, null);
       return `<div class="cs c${Math.min(n, 2)}" style="top:${i * RH + 2}px;height:${RH - 4}px">${n}/2</div>`;
     }).join('') + '</div></div>';
-    if (!st.length) html = '<div class="card">Nema aktivnih radnica. Dodaj ih u kartici Radnice.</div>';
+    if (!st.length) html = '<div class="card">Nema aktivnih radnika/ca. Dodaj ih u kartici Radnici.</div>';
     $('#apGrid').innerHTML = html;
   }
   // najveći broj istovremenih kabinskih termina u [s,e)
@@ -469,7 +469,7 @@
       <div><label class="l">Redoslijed</label><input type="number" data-s="${i}" data-k="sort" value="${s.sort ?? 0}"></div>
       <label class="ck"><input type="checkbox" data-s="${i}" data-k="active" ${s.active ? 'checked' : ''}> aktivna</label>
       <button class="btn btn-gold" data-ss="${i}">Sačuvaj</button>
-      ${!s.id ? '<div class="slog"><span class="lk">Prvo sačuvaj radnicu, pa joj otvori šifru.</span></div>' : s.user_id ? `<div class="slog ok">
+      ${!s.id ? '<div class="slog"><span class="lk">Prvo sačuvaj radnika/cu, pa otvori šifru.</span></div>' : s.user_id ? `<div class="slog ok">
         <span class="lk">✓ Ima prijavu: <b>${esc(s.email || '')}</b></span>
         <button class="btn" data-np="${i}">🔑 Nova šifra</button><button class="btn btn-red" data-rm="${i}">Ukloni prijavu</button></div>` : `<div class="slog">
         <span class="lk">Nema prijavu.</span>
@@ -501,7 +501,7 @@
     const t = encodeURIComponent(s._done.msg);
     return `<div class="lgcard"><h4>🔑 Podaci za prijavu — ${esc(s.name)}</h4>
       <div class="lgd"><span>Link</span><b>${esc(location.origin)}/admin</b><span>Email</span><b>${esc(s._done.em)}</b><span>Lozinka</span><b>${esc(s._done.pw)}</b></div>
-      <ol><li>Pošalji joj poruku (Viber / WhatsApp) ili kopiraj.</li><li>Ona otvori link i prijavi se.</li><li>Ako zaboravi lozinku, ovdje klikni „Nova šifra“.</li></ol>
+      <ol><li>Pošalji poruku (Viber / WhatsApp) ili kopiraj.</li><li>Otvori link i prijavi se.</li><li>Ako zaboravi lozinku, ovdje klikni „Nova šifra“.</li></ol>
       <div class="lgacts"><a class="btn" href="viber://forward?text=${t}">Viber</a><a class="btn" href="https://wa.me/?text=${t}" target="_blank" rel="noopener">WhatsApp</a><button class="btn" data-cp="${i}">📋 Kopiraj poruku</button><button class="btn" data-hd="${i}">Zatvori</button></div></div>`;
   }
   const genPw = () => { const a = 'abcdefghjkmnpqrstuvwxyz', d = '23456789', r = n => crypto.getRandomValues(new Uint8Array(1))[0] % n; let p = ''; for (let k = 0; k < 6; k++) p += a[r(a.length)]; p = p[0].toUpperCase() + p.slice(1); for (let k = 0; k < 3; k++) p += d[r(d.length)]; return p; };
@@ -515,7 +515,7 @@
       if (!em || pw.length < 8) return toast('Upiši email i lozinku od bar 8 znakova');
       t.disabled = true; const r = await staffUser({action: 'create', staff_id: s.id, email: em, password: pw}); t.disabled = false;
       if (r.error) {
-        if (r.exists && await askConfirm('Nalog već postoji', `Nalog s emailom ${em} već postoji. Želiš li ga povezati s radnicom ${s.name}? Lozinka ostaje stara.`, 'Poveži', false)) {
+        if (r.exists && await askConfirm('Nalog već postoji', `Nalog s emailom ${em} već postoji. Želiš li ga povezati s radnikom/com ${s.name}? Lozinka ostaje stara.`, 'Poveži', false)) {
           const l = await sb.rpc('lax_link_staff', {p_staff: s.id, p_email: em}); if (l.error) return toast('Greška: ' + l.error.message);
           toast('Prijava povezana'); await reloadBase(); return drawStaffAdmin();
         }
@@ -541,7 +541,7 @@
     if (!row.name) return toast('Upiši ime');
     const r = s.id ? await sb.from('lax_staff').update(row).eq('id', s.id).select().single() : await sb.from('lax_staff').insert(row).select().single();
     if (r.error) return toast('Greška: ' + r.error.message);
-    toast('Radnica sačuvana'); await reloadBase(); drawStaffAdmin(); loadWeek();
+    toast('Radnik/ca sačuvan/a'); await reloadBase(); drawStaffAdmin(); loadWeek();
   });
   $('#stNew').onclick = () => { staff.push({name: '', email: '', sort: staff.length + 1, active: true}); drawStaffAdmin(); };
   $('#rwList').addEventListener('input', e => { const t = e.target; if (t.dataset.r == null) return; rewards[+t.dataset.r][t.dataset.k] = t.type === 'checkbox' ? t.checked : t.type === 'number' ? parseInt(t.value) : t.value; });
@@ -652,7 +652,7 @@
       <div class="pms">${per.map(x => `<span>${esc(x.n)} <b>${km(x.v)}</b> <small>(${x.k})</small></span>`).join('')}</div>`;
     const rows = day.filter(a => a.status !== 'otkazan');
     if (!rows.length) { $('#ckList').innerHTML = '<div class="card" style="text-align:center;color:var(--muted)">Nema termina za ovaj dan.</div>'; return; }
-    $('#ckList').innerHTML = `<table class="cktbl"><thead><tr><th>Vrijeme</th><th>Klijent</th><th>Usluga</th><th>Radnica</th><th>Status</th><th class="r">Iznos</th></tr></thead><tbody>${rows.map(a => {
+    $('#ckList').innerHTML = `<table class="cktbl"><thead><tr><th>Vrijeme</th><th>Klijent</th><th>Usluga</th><th>Radnik/ca</th><th>Status</th><th class="r">Iznos</th></tr></thead><tbody>${rows.map(a => {
       const c = clients.find(x => x.id === a.client_id), s = staff.find(x => x.id === a.staff_id);
       const ex = Array.isArray(a.extras) && a.extras.length ? '<br><small>+ ' + a.extras.map(x => esc(x.name) + (x.qty > 1 ? ' ×' + x.qty : '')).join(', ') + '</small>' : '';
       return `<tr class="${a.status === 'zakazan' ? 'zak' : a.status === 'nije_dosla' ? 'nd' : ''}"><td>${hm(a.s)}</td><td>${esc(c ? c.name : a.client_name || '')}</td><td>${esc(a.service_name)}${ex}</td><td>${esc(s ? s.name : '')}</td><td>${STN[a.status] || a.status}</td><td class="r">${a.status === 'zavrsen' ? km(a.price || 0) : '<small>' + km(a.price || 0) + '</small>'}</td></tr>`;
