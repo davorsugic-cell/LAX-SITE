@@ -190,6 +190,8 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 .rwb{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}.rwb .btn{font-size:12px;padding:8px 12px}
 .lnkbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:14px}.lnkbox code{display:block;font-size:12px;word-break:break-all;margin-bottom:8px;color:var(--ink)}.lnkbox div{display:flex;flex-wrap:wrap;gap:6px}.lnkbox .btn{font-size:12px;padding:7px 12px}
 .hist{max-height:220px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:12px}.ph{display:grid;grid-template-columns:90px 1fr 60px;gap:8px;padding:8px 12px;border-bottom:1px solid #f1e9df;font-size:13px}.ph b{text-align:right;color:var(--green)}.ph b.neg{color:var(--red)}
+.cktbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}.cktbl th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:10px 12px;background:#faf6f0;border-bottom:1px solid var(--line)}.cktbl td{padding:9px 12px;border-bottom:1px solid #f1ece6}.cktbl td.r,.cktbl th.r{text-align:right;white-space:nowrap}.cktbl tr.zak td{color:var(--muted)}.cktbl tr.nd td{color:#b44;text-decoration:line-through}.cktbl tfoot td{font-weight:600;background:#faf6f0;border-bottom:0}.cktbl small{color:var(--muted)}
+.lgcard{grid-column:1/-1;background:#2b2420;color:#f7f1ea;border-radius:16px;padding:16px 18px;display:grid;gap:10px}.lgcard h4{font-family:var(--serif);font-weight:500;font-size:22px;margin:0}.lgcard .lgd{display:grid;grid-template-columns:90px 1fr;gap:4px 10px;font-size:14px}.lgcard .lgd span{color:var(--gold2);font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding-top:3px}.lgcard .lgd b{font-weight:500;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.03em;word-break:break-all}.lgcard ol{margin:0;padding-left:18px;font-size:13px;color:#cdbfae;line-height:1.55}.lgcard .lgacts{display:flex;gap:8px;flex-wrap:wrap}.lgcard .lgacts .btn{background:#fff;color:#2b2420;border-color:#fff;text-decoration:none}
 .strow{display:grid;grid-template-columns:1.6fr 100px auto auto;gap:10px;align-items:end;padding:14px 16px}
 .strow .slog{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px dashed var(--line);padding-top:12px;margin-top:2px}.strow .slog input{max-width:230px}.strow .slog.ok .lk b{color:var(--green);font-weight:500}
 .strow .slog.done{background:#eef5ef;border:1px solid #cfe3d4;border-radius:12px;padding:10px 12px;font-size:13px;color:var(--green)}.strow .slog.done code{white-space:pre;font-size:12px;color:var(--ink);background:#fff;border-radius:8px;padding:8px 10px;flex:1}.strow .lk{font-size:12px;color:var(--muted);padding-bottom:10px}.strow .ck{padding-bottom:10px}
@@ -246,6 +248,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
       <button data-t="appts" class="on">Termini</button>
       <button data-t="orders" class="adm">Narudžbe<span class="badge hide" id="newN"></span></button>
       <button data-t="clients">Klijenti</button>
+      <button data-t="check">Provjera</button>
       <button data-t="products" class="adm">Proizvodi</button>
       <button data-t="categories" class="adm">Kategorije</button>
       <button data-t="services" class="adm">Cjenovnik</button>
@@ -266,7 +269,6 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="prBtn">🖨 Štampa / slika</button><button class="btn" id="rmBtn">🔔 Podsjetnici za sutra<span class="badge hide" id="rmN"></span></button><button class="btn btn-gold" id="apNew">+ Novi termin</button></div></div>
       <div class="rmbar hide" id="rmBar"><span id="rmBarT"></span><button class="btn" id="rmBarGo">Otvori podsjetnike</button></div>
       <div class="days" id="apDays"></div>
-      <div class="prom hide" id="apProm"></div>
       <div class="apwrap" id="apGrid"><div class="card" style="color:var(--muted)">Učitavanje…</div></div>
       <div class="leg"><span><i class="lz"></i>Zakazan</span><span><i class="lv"></i>Završen (bodovi dodani)</span><span><i class="ln"></i>Nije došla / otkazan</span><span><i class="lk2"></i>Treba kabinu</span><span><i class="lc"></i>Obje kabine zauzete</span></div>
       <p class="hint">Klikni na prazno polje u koloni radnice da zakažeš termin u to vrijeme, ili na termin da ga otvoriš.</p>
@@ -278,9 +280,17 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
       <div id="clList"></div>
     </section>
 
+    <section id="t-check" class="hide">
+      <div class="bar"><h2>Provjera</h2>
+        <div class="wk"><button class="btn rd" id="ckPrev">‹</button><b id="ckDate"></b><button class="btn rd" id="ckNext">›</button><button class="btn" id="ckToday">Danas</button></div></div>
+      <div class="prom" id="apProm"><div class="card" style="color:var(--muted)">Učitavanje…</div></div>
+      <div id="ckList"></div>
+      <p class="hint">Promet se računa samo od termina sa statusom <b>Završen</b>. Na kraju dana uporedite ukupno sa kasom.</p>
+    </section>
+
     <section id="t-staff" class="hide">
       <div class="bar"><h2>Radnice</h2><button class="btn btn-gold" id="stNew">+ Nova radnica</button></div>
-      <p class="hint">Radnica se prijavljuje svojim emailom i lozinkom i vidi samo Termine i Klijente. Prijavu joj napraviš ovdje: upiši email, lozinku (ili klikni Generiši) i „Napravi prijavu“, pa joj pošalji podatke.</p>
+      <p class="hint">Radnica vidi Termine, Klijente i Provjeru. Za prijavu klikni <b>🔑 Otvori šifru</b> — email i lozinka su već predloženi, a nakon toga dobiješ gotovu poruku s podacima za prijavu koju joj pošalješ na Viber ili WhatsApp.</p>
       <div id="stList"></div>
       <div class="bar" style="margin-top:34px"><h2>Nagrade programa vjernosti</h2><button class="btn btn-gold" id="rwNew">+ Nova nagrada</button></div>
       <div id="rwList"></div>
@@ -438,7 +448,7 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload();
 $('#tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['orders', 'appts', 'clients', 'products', 'categories', 'services', 'team', 'delivery', 'staff'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
+  ['orders', 'appts', 'clients', 'check', 'products', 'categories', 'services', 'team', 'delivery', 'staff'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
 };
 
 // ---------- narudžbe ----------

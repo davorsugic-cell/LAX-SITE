@@ -156,7 +156,6 @@
     }).join('') + '</div></div>';
     if (!st.length) html = '<div class="card">Nema aktivnih radnica. Dodaj ih u kartici Radnice.</div>';
     $('#apGrid').innerHTML = html;
-    drawProm(d, list, st);
   }
   // najveći broj istovremenih kabinskih termina u [s,e)
   function cabinMax(s, e, excl) {
@@ -470,15 +469,14 @@
       <div><label class="l">Redoslijed</label><input type="number" data-s="${i}" data-k="sort" value="${s.sort ?? 0}"></div>
       <label class="ck"><input type="checkbox" data-s="${i}" data-k="active" ${s.active ? 'checked' : ''}> aktivna</label>
       <button class="btn btn-gold" data-ss="${i}">Sačuvaj</button>
-      ${!s.id ? '<div class="slog"><span class="lk">Prvo sačuvaj radnicu, pa joj napravi prijavu.</span></div>' : s.user_id ? `<div class="slog ok">
-        <span class="lk">✓ Prijava: <b>${esc(s.email || '')}</b></span>
-        <input data-s="${i}" data-k="pw" placeholder="nova lozinka (min. 8)" autocomplete="new-password"><button class="btn" data-gen="${i}">Generiši</button>
-        <button class="btn" data-pw="${i}">Promijeni lozinku</button><button class="btn btn-red" data-rm="${i}">Ukloni prijavu</button></div>` : `<div class="slog">
+      ${!s.id ? '<div class="slog"><span class="lk">Prvo sačuvaj radnicu, pa joj otvori šifru.</span></div>' : s.user_id ? `<div class="slog ok">
+        <span class="lk">✓ Ima prijavu: <b>${esc(s.email || '')}</b></span>
+        <button class="btn" data-np="${i}">🔑 Nova šifra</button><button class="btn btn-red" data-rm="${i}">Ukloni prijavu</button></div>` : `<div class="slog">
         <span class="lk">Nema prijavu.</span>
-        <input data-s="${i}" data-k="em" placeholder="email za prijavu" value="${esc(s._em || '')}" autocomplete="off">
-        <input data-s="${i}" data-k="pw" placeholder="lozinka (min. 8)" value="${esc(s._pw || '')}" autocomplete="new-password"><button class="btn" data-gen="${i}">Generiši</button>
-        <button class="btn btn-gold" data-mk="${i}">Napravi prijavu</button></div>`}
-      ${s._done ? `<div class="slog done"><span>Pošalji radnici podatke za prijavu (Viber, SMS):</span><code>${esc(s._done)}</code><button class="btn" data-cp="${i}">Kopiraj</button></div>` : ''}
+        <input data-s="${i}" data-k="em" placeholder="email" value="${esc(s._em ?? sugEmail(s))}" autocomplete="off">
+        <input data-s="${i}" data-k="pw" placeholder="lozinka (min. 8)" value="${esc(s._pw || (s._pw = genPw()))}" autocomplete="new-password"><button class="btn" data-gen="${i}" title="Nova lozinka">↻</button>
+        <button class="btn btn-gold" data-mk="${i}">🔑 Otvori šifru</button></div>`}
+      ${s._done ? loginCard(s, i) : ''}
     </div>`).join('');
     $('#rwList').innerHTML = rewards.map((r, i) => `<div class="card rwrow">
       <input data-r="${i}" data-k="name" value="${esc(r.name)}" placeholder="Naziv nagrade">
@@ -497,13 +495,23 @@
     }
     return data || {};
   }
-  const genPw = () => { const a = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'; return Array.from(crypto.getRandomValues(new Uint8Array(10)), x => a[x % a.length]).join(''); };
+  const sugEmail = s => (s.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'dj').replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '') + '@lax.ba';
+  const loginMsg = (s, em, pw) => `Ćao ${s.name}! 👋\nTvoja prijava u LAX Studio admin:\n\n🔗 ${location.origin}/admin\n📧 Email: ${em}\n🔑 Lozinka: ${pw}\n\n1. Otvori link na telefonu ili računaru\n2. Upiši email i lozinku i klikni Prijava\n3. Na telefonu: Podijeli → "Dodaj na početni ekran" da ti bude kao aplikacija\n\nLozinku nemoj nikome slati. 💛`;
+  function loginCard(s, i) {
+    const t = encodeURIComponent(s._done.msg);
+    return `<div class="lgcard"><h4>🔑 Podaci za prijavu — ${esc(s.name)}</h4>
+      <div class="lgd"><span>Link</span><b>${esc(location.origin)}/admin</b><span>Email</span><b>${esc(s._done.em)}</b><span>Lozinka</span><b>${esc(s._done.pw)}</b></div>
+      <ol><li>Pošalji joj poruku (Viber / WhatsApp) ili kopiraj.</li><li>Ona otvori link i prijavi se.</li><li>Ako zaboravi lozinku, ovdje klikni „Nova šifra“.</li></ol>
+      <div class="lgacts"><a class="btn" href="viber://forward?text=${t}">Viber</a><a class="btn" href="https://wa.me/?text=${t}" target="_blank" rel="noopener">WhatsApp</a><button class="btn" data-cp="${i}">📋 Kopiraj poruku</button><button class="btn" data-hd="${i}">Zatvori</button></div></div>`;
+  }
+  const genPw = () => { const a = 'abcdefghjkmnpqrstuvwxyz', d = '23456789', r = n => crypto.getRandomValues(new Uint8Array(1))[0] % n; let p = ''; for (let k = 0; k < 6; k++) p += a[r(a.length)]; p = p[0].toUpperCase() + p.slice(1); for (let k = 0; k < 3; k++) p += d[r(d.length)]; return p; };
   $('#stList').addEventListener('click', async e => {
     const t = e.target, i = k => +t.closest('[' + k + ']').getAttribute(k);
     if (t.closest('[data-gen]')) { const s = staff[i('data-gen')]; s._pw = genPw(); const inp = t.closest('.slog').querySelector('[data-k="pw"]'); inp.value = s._pw; return; }
-    if (t.closest('[data-cp]')) { navigator.clipboard.writeText(staff[i('data-cp')]._done).then(() => toast('Kopirano')); return; }
+    if (t.closest('[data-cp]')) { navigator.clipboard.writeText(staff[i('data-cp')]._done.msg).then(() => toast('Poruka kopirana')); return; }
+    if (t.closest('[data-hd]')) { staff[i('data-hd')]._done = null; drawStaffAdmin(); return; }
     if (t.closest('[data-mk]')) {
-      const s = staff[i('data-mk')], em = (s._em || '').trim(), pw = s._pw || '';
+      const s = staff[i('data-mk')], em = (s._em ?? sugEmail(s)).trim(), pw = s._pw || '';
       if (!em || pw.length < 8) return toast('Upiši email i lozinku od bar 8 znakova');
       t.disabled = true; const r = await staffUser({action: 'create', staff_id: s.id, email: em, password: pw}); t.disabled = false;
       if (r.error) {
@@ -513,14 +521,14 @@
         }
         return toast('Greška: ' + r.error);
       }
-      const done = `Prijava u LAX admin: ${location.origin}/admin\nEmail: ${em}\nLozinka: ${pw}`;
-      await reloadBase(); const n = staff.find(x => x.id === s.id); if (n) n._done = done; drawStaffAdmin(); toast('Prijava napravljena'); return;
+      const done = {em, pw, msg: loginMsg(s, em, pw)};
+      await reloadBase(); const n = staff.find(x => x.id === s.id); if (n) n._done = done; drawStaffAdmin(); toast('Šifra otvorena'); return;
     }
-    if (t.closest('[data-pw]')) {
-      const s = staff[i('data-pw')], pw = s._pw || '';
-      if (pw.length < 8) return toast('Nova lozinka mora imati bar 8 znakova');
+    if (t.closest('[data-np]')) {
+      const s = staff[i('data-np')], pw = genPw();
+      if (!await askConfirm('Nova šifra?', `${s.name} dobija novu lozinku, a stara prestaje da radi.`, 'Napravi novu', false)) return;
       const r = await staffUser({action: 'password', staff_id: s.id, password: pw}); if (r.error) return toast('Greška: ' + r.error);
-      s._done = `Prijava u LAX admin: ${location.origin}/admin\nEmail: ${s.email}\nNova lozinka: ${pw}`; s._pw = ''; drawStaffAdmin(); toast('Lozinka promijenjena'); return;
+      s._done = {em: s.email, pw, msg: loginMsg(s, s.email, pw)}; drawStaffAdmin(); toast('Nova šifra napravljena'); return;
     }
     if (t.closest('[data-rm]')) {
       const s = staff[i('data-rm')];
@@ -619,20 +627,41 @@
   $('#rmmX').onclick = closeRm; $('#rmmOk').onclick = closeRm;
   $('#rmm').addEventListener('click', e => { if (e.target.id === 'rmm') closeRm(); });
 
-  // ---------- dnevni promet (admin i radnice): završeni termini ----------
-  function drawProm(d, list, st) {
-    const box = $('#apProm');
-    const done = list.filter(a => a.status === 'zavrsen'), sched = list.filter(a => a.status === 'zakazan');
-    const sum = L => L.reduce((t, a) => t + (+a.price || 0), 0);
-    const art = done.reduce((t, a) => t + (Array.isArray(a.extras) ? a.extras.filter(x => x.variant_id).reduce((u, x) => u + x.price * x.qty, 0) : 0), 0);
-    const wk = appts.filter(a => a.status === 'zavrsen');
-    const per = st.map(s => ({n: s.name, v: sum(done.filter(a => a.staff_id === s.id))})).filter(x => x.v);
-    box.innerHTML = `<div class="pm main"><small>Promet · ${DN[d.getDay()]} ${ddmm(d)}</small><b>${km(sum(done))}</b><i>${done.length} ${done.length === 1 ? 'završen termin' : 'završenih termina'}${art ? ' · artikli ' + km(art) : ''}</i></div>
-      <div class="pm"><small>Još zakazano</small><b>${km(sum(sched))}</b><i>${sched.length} termina</i></div>
-      <div class="pm"><small>Ova sedmica</small><b>${km(sum(wk))}</b><i>${wk.length} završenih</i></div>
-      <div class="pms">${per.map(x => `<span>${esc(x.n)} <b>${km(x.v)}</b></span>`).join('')}</div>`;
-    box.classList.remove('hide');
+  // ---------- PROVJERA (admin i radnice): promet od završenih termina ----------
+  let ckDay = null;
+  const ckSum = L => L.reduce((t, a) => t + (+a.price || 0), 0);
+  const ckArt = L => L.reduce((t, a) => t + (Array.isArray(a.extras) ? a.extras.filter(x => x.variant_id).reduce((u, x) => u + x.price * x.qty, 0) : 0), 0);
+  async function loadCheck() {
+    if (!ckDay) { ckDay = new Date(); ckDay.setHours(0, 0, 0, 0); if (ckDay.getDay() === 0) ckDay.setDate(ckDay.getDate() - 1); }
+    const d = ckDay, nd = new Date(d); nd.setDate(nd.getDate() + 1);
+    const ws = new Date(d); ws.setDate(ws.getDate() - ((ws.getDay() + 6) % 7)); const we = new Date(ws); we.setDate(we.getDate() + 7);
+    const ms = new Date(d.getFullYear(), d.getMonth(), 1), me = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+    const from = ws < ms ? ws : ms, to = we > me ? we : me;
+    $('#ckDate').textContent = DN[d.getDay()] + ' ' + ddmm(d) + d.getFullYear() + '.';
+    const {data, error} = await sb.from('lax_appointments').select('*').gte('starts_at', from.toISOString()).lt('starts_at', to.toISOString()).order('starts_at');
+    if (error) { $('#apProm').innerHTML = '<div class="card">Greška: ' + esc(error.message) + '</div>'; $('#ckList').innerHTML = ''; return; }
+    const L = data.map(a => ({...a, s: new Date(a.starts_at), e: new Date(a.ends_at)})).sort((x, y) => x.s - y.s), inR = (a, x, y) => a.s >= x && a.s < y;
+    const day = L.filter(a => inR(a, d, nd)), done = day.filter(a => a.status === 'zavrsen'), sched = day.filter(a => a.status === 'zakazan');
+    const wkD = L.filter(a => a.status === 'zavrsen' && inR(a, ws, we)), moD = L.filter(a => a.status === 'zavrsen' && inR(a, ms, me));
+    const art = ckArt(done), st = staff.filter(s => s.active !== false);
+    const per = st.map(s => ({n: s.name, v: ckSum(done.filter(a => a.staff_id === s.id)), k: done.filter(a => a.staff_id === s.id).length})).filter(x => x.k);
+    $('#apProm').innerHTML = `<div class="pm main"><small>Promet · ${DN[d.getDay()]} ${ddmm(d)}</small><b>${km(ckSum(done))}</b><i>${done.length} ${done.length === 1 ? 'završen termin' : 'završenih termina'}${art ? ' · od toga artikli ' + km(art) : ''}</i></div>
+      <div class="pm"><small>Još zakazano</small><b>${km(ckSum(sched))}</b><i>${sched.length} termina</i></div>
+      <div class="pm"><small>Sedmica</small><b>${km(ckSum(wkD))}</b><i>${wkD.length} završenih</i></div>
+      <div class="pm"><small>${MN[d.getMonth()]}</small><b>${km(ckSum(moD))}</b><i>${moD.length} završenih</i></div>
+      <div class="pms">${per.map(x => `<span>${esc(x.n)} <b>${km(x.v)}</b> <small>(${x.k})</small></span>`).join('')}</div>`;
+    const rows = day.filter(a => a.status !== 'otkazan');
+    if (!rows.length) { $('#ckList').innerHTML = '<div class="card" style="text-align:center;color:var(--muted)">Nema termina za ovaj dan.</div>'; return; }
+    $('#ckList').innerHTML = `<table class="cktbl"><thead><tr><th>Vrijeme</th><th>Klijent</th><th>Usluga</th><th>Radnica</th><th>Status</th><th class="r">Iznos</th></tr></thead><tbody>${rows.map(a => {
+      const c = clients.find(x => x.id === a.client_id), s = staff.find(x => x.id === a.staff_id);
+      const ex = Array.isArray(a.extras) && a.extras.length ? '<br><small>+ ' + a.extras.map(x => esc(x.name) + (x.qty > 1 ? ' ×' + x.qty : '')).join(', ') + '</small>' : '';
+      return `<tr class="${a.status === 'zakazan' ? 'zak' : a.status === 'nije_dosla' ? 'nd' : ''}"><td>${hm(a.s)}</td><td>${esc(c ? c.name : a.client_name || '')}</td><td>${esc(a.service_name)}${ex}</td><td>${esc(s ? s.name : '')}</td><td>${STN[a.status] || a.status}</td><td class="r">${a.status === 'zavrsen' ? km(a.price || 0) : '<small>' + km(a.price || 0) + '</small>'}</td></tr>`;
+    }).join('')}</tbody><tfoot><tr><td colspan="5">Ukupno završeno</td><td class="r">${km(ckSum(done))}</td></tr></tfoot></table>`;
   }
+  const ckMove = n => { do { ckDay.setDate(ckDay.getDate() + n); } while (ckDay.getDay() === 0); loadCheck(); };
+  $('#ckPrev').onclick = () => ckMove(-1); $('#ckNext').onclick = () => ckMove(1);
+  $('#ckToday').onclick = () => { ckDay = null; loadCheck(); };
+  $('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.t === 'check') loadCheck(); });
 
   // =========================================================
   // ŠTAMPA: dnevni, sedmični i mjesečni pregled termina
