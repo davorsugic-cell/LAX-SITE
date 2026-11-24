@@ -190,6 +190,12 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 .rwb{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}.rwb .btn{font-size:12px;padding:8px 12px}
 .lnkbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:14px}.lnkbox code{display:block;font-size:12px;word-break:break-all;margin-bottom:8px;color:var(--ink)}.lnkbox div{display:flex;flex-wrap:wrap;gap:6px}.lnkbox .btn{font-size:12px;padding:7px 12px}
 .hist{max-height:220px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:12px}.ph{display:grid;grid-template-columns:90px 1fr 60px;gap:8px;padding:8px 12px;border-bottom:1px solid #f1e9df;font-size:13px}.ph b{text-align:right;color:var(--green)}.ph b.neg{color:var(--red)}
+.rpper{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.rpper select{width:auto}.rpper input{width:auto;padding:8px 10px}
+.rptabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px}.rptabs button{border:1px solid var(--line);background:#fff;border-radius:22px;padding:8px 16px;font:inherit;font-size:13.5px;cursor:pointer;color:var(--muted)}.rptabs button.on{background:var(--gold);border-color:var(--gold);color:#fff}
+.rphead{display:none}.rpk{margin-bottom:18px}.rpblk{margin:0 0 22px}.rpblk h3{font-family:var(--serif);font-weight:500;font-size:22px;margin:0 0 10px}
+.rpch{display:flex;align-items:flex-end;gap:3px;height:190px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 12px 26px;overflow-x:auto}.rpch .c{flex:1;min-width:16px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}.rpch .c i{display:block;width:100%;max-width:38px;background:linear-gradient(180deg,var(--gold2),var(--gold));border-radius:5px 5px 2px 2px;min-height:1px}.rpch .c .v{font-size:10px;color:var(--muted);margin-bottom:3px;white-space:nowrap}.rpch .c .l{position:absolute;bottom:-20px;font-size:10.5px;color:var(--muted);white-space:nowrap}.rpch .c.w{border-left:1px dashed var(--line)}
+.rpbar{display:inline-block;width:120px;height:8px;background:#f1ece6;border-radius:6px;overflow:hidden;vertical-align:middle}.rpbar i{display:block;height:100%;background:var(--gold2);border-radius:6px}.cktbl th.bc,.cktbl td.bc{width:130px}
+@media print{body.rpprint header,body.rpprint .pub,body.rpprint #tabs,body.rpprint section:not(#t-reports),body.rpprint #t-reports>.bar,body.rpprint .rptabs,body.rpprint .toast,body.rpprint .md{display:none!important}body.rpprint{background:#fff}body.rpprint .rphead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--gold2);padding-bottom:8px;margin-bottom:14px;font-family:var(--serif);font-size:24px}body.rpprint .rphead span{font-size:16px;color:var(--muted)}body.rpprint .rpblk{break-inside:avoid}body.rpprint .pm,body.rpprint .cktbl{box-shadow:none}body.rpprint *{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 .cktbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}.cktbl th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:10px 12px;background:#faf6f0;border-bottom:1px solid var(--line)}.cktbl td{padding:9px 12px;border-bottom:1px solid #f1ece6}.cktbl td.r,.cktbl th.r{text-align:right;white-space:nowrap}.cktbl tr.zak td{color:var(--muted)}.cktbl tr.nd td{color:#b44;text-decoration:line-through}.cktbl tfoot td{font-weight:600;background:#faf6f0;border-bottom:0}.cktbl small{color:var(--muted)}
 .lgcard{grid-column:1/-1;background:#2b2420;color:#f7f1ea;border-radius:16px;padding:16px 18px;display:grid;gap:10px}.lgcard h4{font-family:var(--serif);font-weight:500;font-size:22px;margin:0}.lgcard .lgd{display:grid;grid-template-columns:90px 1fr;gap:4px 10px;font-size:14px}.lgcard .lgd span{color:var(--gold2);font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding-top:3px}.lgcard .lgd b{font-weight:500;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.03em;word-break:break-all}.lgcard ol{margin:0;padding-left:18px;font-size:13px;color:#cdbfae;line-height:1.55}.lgcard .lgacts{display:flex;gap:8px;flex-wrap:wrap}.lgcard .lgacts .btn{background:#fff;color:#2b2420;border-color:#fff;text-decoration:none}
 .strow{display:grid;grid-template-columns:1.6fr 100px auto auto;gap:10px;align-items:end;padding:14px 16px}
@@ -249,6 +255,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
       <button data-t="orders">Narudžbe<span class="badge hide" id="newN"></span></button>
       <button data-t="clients">Klijenti</button>
       <button data-t="check">Provjera</button>
+      <button data-t="reports" class="adm">Izvještaji</button>
       <button data-t="products" class="adm">Proizvodi</button>
       <button data-t="categories" class="adm">Kategorije</button>
       <button data-t="services" class="adm">Cjenovnik</button>
@@ -449,7 +456,7 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload();
 $('#tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['orders', 'appts', 'clients', 'check', 'products', 'categories', 'services', 'team', 'delivery', 'staff'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
+  ['orders', 'appts', 'clients', 'check', 'reports', 'products', 'categories', 'services', 'team', 'delivery', 'staff'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
 };
 
 // ---------- narudžbe ----------
@@ -850,5 +857,6 @@ setInterval(() => { if (!$('#appView').classList.contains('hide') && !$('#pub').
 boot();
 </script>
 <script src="/admin-termini.js"></script>
+<script src="/admin-izvjestaji.js"></script>
 </body>
 </html>
