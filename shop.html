@@ -146,6 +146,41 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;text-align:center;fo
   .pc .pr{font-size:19px;margin-top:6px}
   .pc .opts{font-size:12px}
 }
+
+/* ---------- USKORO (dok shop nije otvoren) ---------- */
+.soon{position:relative;padding:64px 0 40px;text-align:center;overflow:hidden}
+.soon .sp{position:absolute;border-radius:50%;background:radial-gradient(circle,#e8cf9a 0,rgba(232,207,154,0) 70%);opacity:.0;animation:sp 7s ease-in-out infinite;pointer-events:none}
+@keyframes sp{0%,100%{opacity:0;transform:translateY(10px) scale(.6)}50%{opacity:.9;transform:translateY(-16px) scale(1)}}
+.soon .gift{width:118px;height:118px;margin:0 auto 26px;border-radius:50%;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:0 18px 50px rgba(138,102,48,.16);animation:float 5s ease-in-out infinite;position:relative}
+.soon .gift:after{content:"";position:absolute;inset:-10px;border-radius:50%;border:1px dashed var(--gold2);opacity:.6;animation:spin 30s linear infinite}
+.soon .gift svg{width:58px;height:58px;color:var(--gold)}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.soon .eyebrow{margin-bottom:14px}
+.soon h1{font-size:clamp(42px,6vw,72px);line-height:1.02;margin-bottom:18px}
+.soon h1 em{display:inline-block;background:linear-gradient(90deg,var(--gold-dk),#e3c486,var(--gold-dk));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 4s linear infinite}
+@keyframes shine{to{background-position:-200% 0}}
+.soon .lead{max-width:560px;margin:0 auto;color:var(--muted);font-size:17px}
+.tease{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:860px;margin:42px auto 0}
+.tease .t{position:relative;aspect-ratio:3/4;border-radius:22px;overflow:hidden;background:linear-gradient(160deg,#fff,var(--bg2));border:1px solid var(--line)}
+.tease .t img{width:100%;height:100%;object-fit:cover;filter:blur(14px) saturate(.9);transform:scale(1.15)}
+.tease .t .lg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}.tease .t .lg img{width:60%;height:auto;filter:blur(6px);opacity:.45;transform:none}
+.tease .t:before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);background-size:250% 100%;animation:shim 3.2s ease-in-out infinite}
+.tease .t:nth-child(2):before{animation-delay:.4s}.tease .t:nth-child(3):before{animation-delay:.8s}.tease .t:nth-child(4):before{animation-delay:1.2s}
+@keyframes shim{0%{background-position:150% 0}100%{background-position:-100% 0}}
+.tease .t span{position:absolute;z-index:2;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(255,255,255,.92);border-radius:20px;padding:6px 14px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-dk);white-space:nowrap}
+.soon .what{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:38px auto 0;max-width:760px}
+.soon .what span{border:1px solid var(--line);background:#fff;border-radius:30px;padding:9px 18px;font-size:14px}
+.soon .what span b{color:var(--gold);font-weight:500;margin-right:6px}
+.soon .note{margin:40px auto 0;max-width:520px;background:#2b2420;color:#f7f1ea;border-radius:26px;padding:30px 28px}
+.soon .note h3{font-family:var(--serif);font-weight:500;font-size:30px;line-height:1.1;margin-bottom:8px}
+.soon .note p{color:#cdbfae;font-size:15px;margin-bottom:20px}
+.soon .note .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.soon .note a{padding:12px 22px;border-radius:30px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#fff}
+.soon .note a.v{background:#7360f2}.soon .note a.w{background:#25a35a}
+.soon .back{display:inline-block;margin-top:30px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--gold2);padding-bottom:3px}
+@media(max-width:700px){.tease{grid-template-columns:repeat(2,1fr);gap:12px}.soon{padding-top:40px}}
+@media(prefers-reduced-motion:reduce){.soon *,.soon *:before,.soon *:after{animation:none!important}}
 </style>
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -229,6 +264,8 @@ async function load() {
     const s = await sb.from('lax_variants').select('id,stock');
     if (!s.error) { const sm = Object.fromEntries((s.data || []).map(x => [x.id, x.stock])); D.products.forEach(pr => (pr.lax_variants || []).forEach(v => { if (v.id in sm) v.stock = sm[v.id]; })); }
   }
+  // dok shop nije otvoren (Admin → Proizvodi → „Shop otvoren za kupce“), kupci vide USKORO; admin u pregledu vidi pravi shop
+  if (D.settings.shop_open !== true && !D.preview) return showSoon(D);
   const p = {data: D.products}, d = {data: D.delivery}, c = {data: D.categories};
   products = (p.data || []).map(x => ({...x, v: (x.lax_variants || []).filter(v => v.active).sort((a, b) => a.sort - b.sort || (a.length_cm||0) - (b.length_cm||0))})).filter(x => x.v.length);
   deliveries = d.data || [];
@@ -238,6 +275,27 @@ async function load() {
   const vmap = {}; products.forEach(pr => pr.v.forEach(v => vmap[v.id] = {v, pr}));
   cart = cart.filter(i => vmap[i.id]).map(i => ({...i, price: vmap[i.id].v.price}));
   saveCart(); render();
+}
+
+function showSoon(D) {
+  document.title = 'LAX Shop — uskoro | LAX Studio Banja Luka';
+  $('#openCart').style.display = 'none';
+  const imgs = (D.products || []).map(p => p.image_url || ((p.lax_variants || []).find(v => v.image_url) || {}).image_url).filter(Boolean).slice(0, 4);
+  const lbl = ['Uskoro', 'Psst…', 'Za vas', 'Uskoro'];
+  const tiles = [0, 1, 2, 3].map(i => `<div class="t">${imgs[i] ? `<img src="${esc(imgs[i])}" alt="">` : `<div class="lg"><img src="/logo.png" alt=""></div>`}<span>${lbl[i]}</span></div>`).join('');
+  const msg = encodeURIComponent('Pozdrav! 💛 Javite mi kad otvorite LAX shop.');
+  const sparks = Array.from({length: 9}, (_, i) => `<i class="sp" style="width:${30 + (i * 17) % 50}px;height:${30 + (i * 17) % 50}px;left:${(i * 37 + 8) % 92}%;top:${(i * 23 + 10) % 70}%;animation-delay:${(i * .8).toFixed(1)}s"></i>`).join('');
+  document.querySelector('main').innerHTML = `<section class="soon">${sparks}
+    <div class="gift"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/><path d="M12 11.2c-.9-1.3-3-.9-3 .7 0 1.4 3 3.3 3 3.3s3-1.9 3-3.3c0-1.6-2.1-2-3-.7z"/></svg></div>
+    <div class="eyebrow">LAX Shop · uskoro</div>
+    <h1>Nešto lijepo<br><em>se upravo pakuje</em></h1>
+    <p class="lead">Uskoro ovdje: ruska kosa vrhunskog kvaliteta i preparati koje i mi koristimo u salonu — da njegu nastavite i kod kuće.</p>
+    <div class="tease">${tiles}</div>
+    <div class="what"><span><b>✦</b>Ruska kosa u više dužina i nijansi</span><span><b>✦</b>Preparati za njegu</span><span><b>✦</b>Dostava u cijeloj BiH</span><span><b>✦</b>Preuzimanje u salonu</span></div>
+    <div class="note"><h3>Budite među prvima</h3><p>Pošaljite nam poruku i javićemo vam čim se shop otvori.</p>
+      <div class="acts"><a class="v" href="viber://chat?number=%2B38766864406&draft=${msg}">Viber</a><a class="w" href="https://wa.me/38766864406?text=${msg}" target="_blank" rel="noopener">WhatsApp</a></div></div>
+    <a class="back" href="/#usluge">Do tada — pogledajte naše tretmane</a>
+  </section>`;
 }
 
 function drawTabs() {
