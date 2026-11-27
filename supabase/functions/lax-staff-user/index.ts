@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     if (action === "password") {
       if (!st.user_id) return json({ error: "Radnica nema prijavu." }, 400);
       if (!pwOk(password)) return json({ error: "Lozinka mora imati bar 8 znakova." }, 400);
-      if (await isAdminUser(st.user_id)) return json({ error: "Ovo je admin nalog — lozinku mijenja sam vlasnik." }, 400);
+      if (st.role !== "admin" && await isAdminUser(st.user_id)) return json({ error: "Ovo je vlasnički admin nalog — lozinku mijenja sam vlasnik." }, 400);
       const { error } = await db.auth.admin.updateUserById(st.user_id, { password });
       if (error) return json({ error: error.message }, 400);
       return json({ ok: true });

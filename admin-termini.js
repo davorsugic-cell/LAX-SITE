@@ -472,7 +472,8 @@
       ${!s.id ? '<div class="slog"><span class="lk">Prvo sačuvaj radnika/cu, pa otvori šifru.</span></div>' : s.user_id ? `<div class="slog ok">
         <span class="lk">✓ Ima prijavu: <b>${esc(s.email || '')}</b></span>
         <select class="role ${s.role === 'admin' ? 'adm' : ''}" data-role="${i}" title="Uloga"><option value="radnik">👤 Radnik/ca</option><option value="admin" ${s.role === 'admin' ? 'selected' : ''}>⭐ Admin</option></select>
-        <button class="btn" data-np="${i}">🔑 Nova šifra</button><button class="btn btn-red" data-rm="${i}">Ukloni prijavu</button></div>` : `<div class="slog">
+        ${s._np != null ? `<input class="pin" data-s="${i}" data-k="np" value="${esc(s._np)}" inputmode="numeric" maxlength="4" placeholder="PIN"><button class="btn" data-npg="${i}" title="Nasumičan PIN">↻</button><button class="btn btn-gold" data-nps="${i}">Sačuvaj PIN</button><button class="btn" data-npx="${i}">Odustani</button>`
+          : `<button class="btn" data-np="${i}">🔑 Nova šifra</button><button class="btn btn-red" data-rm="${i}">Ukloni prijavu</button>`}</div>` : `<div class="slog">
         <span class="lk">Nema prijavu.</span>
         <select class="role" data-s="${i}" data-k="role" title="Uloga"><option value="radnik">👤 Radnik/ca</option><option value="admin" ${(s._role ?? s.role) === 'admin' ? 'selected' : ''}>⭐ Admin</option></select>
         <input data-s="${i}" data-k="em" placeholder="email" value="${esc(s._em ?? sugEmail(s))}" autocomplete="off">
@@ -486,7 +487,7 @@
       <label class="ck"><input type="checkbox" data-r="${i}" data-k="active" ${r.active !== false ? 'checked' : ''}> aktivna</label>
       <button class="btn btn-gold" data-rs="${i}">Sačuvaj</button><button class="btn btn-red" data-rx="${i}">×</button></div>`).join('');
   }
-  $('#stList').addEventListener('input', e => { const t = e.target; if (t.dataset.s == null) return; const s = staff[+t.dataset.s], k = t.dataset.k; s[(k === 'em' || k === 'pw') ? '_' + k : '_' + k] = t.type === 'checkbox' ? t.checked : t.value; });
+  $('#stList').addEventListener('input', e => { const t = e.target; if (t.dataset.s == null) return; const s = staff[+t.dataset.s], k = t.dataset.k; if ((k === 'np' || k === 'pw') && /\D/.test(t.value)) t.value = t.value.replace(/\D/g, ''); s['_' + k] = t.type === 'checkbox' ? t.checked : t.value; });
   $('#stList').addEventListener('change', async e => {
     const t = e.target.closest('[data-role]'); if (!t) return;
     const s = staff[+t.dataset.role], role = t.value, old = s.role || 'radnik';
@@ -542,11 +543,16 @@
       const done = {em, pw, msg: loginMsg(s, em, pw)};
       await reloadBase(); const n = staff.find(x => x.id === s.id); if (n) n._done = done; drawStaffAdmin(); toast('Šifra otvorena'); return;
     }
-    if (t.closest('[data-np]')) {
-      const s = staff[i('data-np')], pw = genPw();
-      if (!await askConfirm('Nova šifra?', `${s.name} dobija novi PIN, a stari prestaje da radi.`, 'Napravi novu', false)) return;
-      const r = await staffUser({action: 'password', staff_id: s.id, password: laxPin(pw)}); if (r.error) return toast('Greška: ' + r.error);
-      s._done = {em: s.email, pw, msg: loginMsg(s, s.email, pw)}; drawStaffAdmin(); toast('Nova šifra napravljena'); return;
+    if (t.closest('[data-np]')) { const s = staff[i('data-np')]; s._np = genPw(); drawStaffAdmin(); const f = document.querySelector('#stList input.pin'); if (f) { f.focus(); f.select(); } return; }
+    if (t.closest('[data-npg]')) { staff[i('data-npg')]._np = genPw(); drawStaffAdmin(); return; }
+    if (t.closest('[data-npx]')) { staff[i('data-npx')]._np = null; drawStaffAdmin(); return; }
+    if (t.closest('[data-nps]')) {
+      const s = staff[i('data-nps')], pw = String(s._np || '').trim();
+      if (!/^\d{4}$/.test(pw)) return toast('PIN mora imati tačno 4 broja');
+      t.disabled = true;
+      const r = await sb.rpc('lax_staff_password', {p_staff: s.id, p_password: laxPin(pw)}); t.disabled = false;
+      if (r.error) return toast('Greška: ' + r.error.message + (/function|schema/i.test(r.error.message) ? ' — pokreni pin.sql' : ''));
+      s._np = null; s._done = {em: s.email, pw, msg: loginMsg(s, s.email, pw)}; drawStaffAdmin(); toast('Novi PIN sačuvan'); return;
     }
     if (t.closest('[data-rm]')) {
       const s = staff[i('data-rm')];
