@@ -261,6 +261,30 @@ h2{font-family:var(--serif);font-weight:400;font-size:clamp(38px,4.6vw,56px);lin
 
 /* NAS TIM */
 #tim{padding-top:0}
+#novosti{padding-bottom:0}
+.news{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px}
+.nw{background:#fff;border:1px solid var(--line);border-radius:24px;overflow:hidden;display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s}
+.nw:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(138,102,48,.12)}
+.nw .im{aspect-ratio:16/10;background:linear-gradient(150deg,#fbf3e6,#efe5d9);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.nw .im img{width:100%;height:100%;object-fit:cover}.nw .im img.lg{width:34%;height:auto;opacity:.5}
+.nw .bd{padding:22px 24px 24px;display:flex;flex-direction:column;gap:10px;flex:1}
+.nw .dt{display:flex;align-items:center;gap:10px;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.nw .dt b{background:var(--gold);color:#fff;font-weight:500;border-radius:20px;padding:3px 10px;letter-spacing:.16em;font-size:10px}
+.nw .dt i{font-style:normal;color:var(--gold-dk)}
+.nw h3{font-family:var(--serif);font-weight:500;font-size:27px;line-height:1.1}
+.nw p{color:var(--muted);font-size:15px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+.nw .ft{margin-top:auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding-top:6px}
+.nw .ft button,.nw .ft a{background:none;border:0;padding:0;font:inherit;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dk);border-bottom:1px solid var(--gold2);cursor:pointer}
+.nw.pin{border-color:var(--gold2);box-shadow:0 0 0 3px #f6ead3}
+.nwov{position:fixed;inset:0;background:rgba(43,36,32,.5);z-index:90;opacity:0;pointer-events:none;transition:opacity .25s}.nwov.on{opacity:1;pointer-events:auto}
+.nwdlg{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:min(640px,calc(100vw - 28px));max-height:88vh;overflow:auto;background:var(--bg);border-radius:26px;z-index:91;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+.nwdlg.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.nwdlg .x{position:absolute;right:14px;top:14px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.92);font-size:24px;cursor:pointer;z-index:2}
+.nwdlg img{width:100%;max-height:380px;object-fit:cover;display:block}
+.nwdlg .in{padding:26px 30px 32px}.nwdlg h3{font-family:var(--serif);font-weight:500;font-size:36px;line-height:1.05;margin:8px 0 14px}.nwdlg p{white-space:pre-line;color:#4a3f38}
+.nwdlg .dt{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.nwdlg .go{display:inline-block;margin-top:22px;background:var(--gold);color:#fff;border-radius:30px;padding:12px 24px;font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+@media (max-width:560px){.news{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:84%;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-left:22px;padding-bottom:8px;margin:0 -22px;padding-left:22px;padding-right:22px}.nw .dt{flex-wrap:wrap;gap:6px 10px}.nw{scroll-snap-align:start}.nw h3{font-size:24px}}
 .team{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,270px));justify-content:center;gap:26px}
 .tm{text-align:center}
 .tm .ph{aspect-ratio:3/4;border-radius:200px 200px 22px 22px;overflow:hidden;background:radial-gradient(circle at 50% 35%,#fffaf3,#efe0cc 70%,#e2cdb1);display:flex;align-items:center;justify-content:center;box-shadow:0 16px 36px rgba(43,36,32,.12);border:1px solid var(--line)}
@@ -400,9 +424,11 @@ nav.main a.lp i{position:absolute;top:-6px;right:-4px;font-style:normal;backgrou
       <span><b>LAX Studio</b><small>Salon ljepote</small></span>
     </a>
     <nav class="main" id="nav">
+      <a href="#novosti" id="navNews" hidden>Novosti</a>
       <a href="#usluge">Usluge</a>
       <a href="#kosa">Ruska kosa</a>
       <a href="#edukacije">Edukacije</a>
+      <a href="#tim" id="navTeam" hidden>Naš tim</a>
       <a href="/shop">Shop</a>
       <a href="#vjernost" class="lp">♥ Bodovi <i>NOVO</i></a>
       <div class="dd" id="dd">
@@ -450,6 +476,19 @@ nav.main a.lp i{position:absolute;top:-6px;right:-4px;font-style:normal;backgrou
     </div>
   </div>
 </div>
+
+<!-- NOVOSTI (iz admina) -->
+<section id="novosti" hidden>
+  <div class="wrap">
+    <div class="sec-head">
+      <div><div class="eyebrow">Iz salona</div><h2>Novosti</h2></div>
+      <p>Akcije, novi tretmani i dešavanja u LAX Studiju.</p>
+    </div>
+    <div class="news" id="newsGrid"></div>
+  </div>
+</section>
+<div class="nwov" id="nwOv"></div>
+<div class="nwdlg" id="nwDlg" role="dialog" aria-modal="true" aria-labelledby="nwDT"><button class="x" id="nwX" aria-label="Zatvori">×</button><div id="nwDB"></div></div>
 
 <!-- USLUGE -->
 <section id="usluge">
@@ -705,11 +744,11 @@ function renderStatus(){
 
 // --- Aktivna stavka menija dok se skrola ---
 (function(){
-  const map=[['usluge','#nav a[href="#usluge"]'],['kosa','#nav a[href="#kosa"]'],['edukacije','#nav a[href="#edukacije"]'],['kontakt','#dd']];
+  const map=[['novosti','#nav a[href="#novosti"]'],['usluge','#nav a[href="#usluge"]'],['kosa','#nav a[href="#kosa"]'],['edukacije','#nav a[href="#edukacije"]'],['tim','#nav a[href="#tim"]'],['kontakt','#dd']];
   const els=map.map(([id,sel])=>[document.getElementById(id),document.querySelector(sel)]).filter(x=>x[0]&&x[1]);
   function spy(){
     const y=window.scrollY+window.innerHeight*0.35; let cur=null;
-    els.forEach(([sec,link])=>{ if(sec.offsetTop<=y) cur=link; });
+    els.forEach(([sec,link])=>{ if(!sec.hidden&&sec.offsetTop<=y) cur=link; });
     els.forEach(([,link])=>link.classList.toggle('act',link===cur));
   }
   window.addEventListener('scroll',spy,{passive:true}); spy();
@@ -759,8 +798,38 @@ async function loadTeam(){
       ${ig?`<a class="ig" href="https://www.instagram.com/${encodeURIComponent(ig)}/" target="_blank" rel="noopener">@${escH(ig)}</a>`:''}</div>`;
   }).join('');
   document.getElementById('tim').hidden=false;
+  const nt=document.getElementById('navTeam'); if(nt) nt.hidden=false;
 }
 window.addEventListener('DOMContentLoaded',loadTeam);
+// --- Novosti (iz admina, kroz objavu) ---
+const MJ=['januar','februar','mart','april','maj','juni','juli','avgust','septembar','oktobar','novembar','decembar'];
+let NEWS=[];
+async function loadNews(){
+  if(!window.laxData) return;
+  let data; try{ data=(await laxData()).news; }catch(e){ return; }
+  const t=new Date(), today=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  NEWS=(data||[]).filter(n=>(!n.news_date||n.news_date<=today)&&(!n.show_until||n.show_until>=today))
+    .sort((a,b)=>(b.pinned-a.pinned)||String(b.news_date).localeCompare(String(a.news_date))).slice(0,6);
+  if(!NEWS.length) return;
+  const fd=d=>{if(!d)return'';const x=new Date(d+'T12:00');return x.getDate()+'. '+MJ[x.getMonth()]+' '+x.getFullYear()+'.';};
+  const fresh=d=>d&&(t-new Date(d+'T12:00'))<14*864e5;
+  const lnk=n=>n.link_url?`<a href="${escH(n.link_url)}"${/^https?:/.test(n.link_url)&&!n.link_url.includes('lax.ba')?' target="_blank" rel="noopener"':''}>${escH(n.link_label||'Saznajte više')} →</a>`:'';
+  document.getElementById('newsGrid').innerHTML=NEWS.map((n,i)=>`<article class="nw${n.pinned?' pin':''}">
+    <div class="im">${n.image_url?`<img src="${escH(n.image_url)}" alt="${escH(n.title)}" loading="lazy">`:'<img class="lg" src="/logo.png" alt="">'}</div>
+    <div class="bd"><div class="dt">${fresh(n.news_date)?'<b>NOVO</b>':''}${n.pinned?'<i>★ Izdvojeno</i>':''}<span>${fd(n.news_date)}</span></div>
+      <h3>${escH(n.title)}</h3>${n.body?`<p>${escH(n.body)}</p>`:''}
+      <div class="ft">${(n.body||'').length>160||n.image_url?`<button type="button" data-nw="${i}">Pročitaj više</button>`:''}${lnk(n)}</div></div></article>`).join('');
+  document.getElementById('novosti').hidden=false;
+  const nn=document.getElementById('navNews'); if(nn) nn.hidden=false;
+  const dlg=document.getElementById('nwDlg'), ov=document.getElementById('nwOv');
+  const close=()=>{dlg.classList.remove('on');ov.classList.remove('on');};
+  document.getElementById('newsGrid').addEventListener('click',e=>{const b=e.target.closest('[data-nw]');if(!b)return;const n=NEWS[+b.dataset.nw];
+    document.getElementById('nwDB').innerHTML=`${n.image_url?`<img src="${escH(n.image_url)}" alt="">`:''}<div class="in"><div class="dt">${fd(n.news_date)}</div><h3 id="nwDT">${escH(n.title)}</h3>${n.body?`<p>${escH(n.body)}</p>`:''}${n.link_url?`<a class="go" href="${escH(n.link_url)}">${escH(n.link_label||'Saznajte više')}</a>`:''}</div>`;
+    dlg.classList.add('on');ov.classList.add('on');});
+  document.getElementById('nwX').onclick=close; ov.onclick=close;
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+}
+window.addEventListener('DOMContentLoaded',loadNews);
 document.querySelectorAll('.svc[data-cat]').forEach(c=>c.addEventListener('click',e=>{e.preventDefault();openPl(c.dataset.cat)}));
 document.getElementById('plX').onclick=closePl; plOv.onclick=closePl;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePl()});

@@ -30,13 +30,15 @@
       sb.from('lax_delivery').select('*').eq('active', true),
       sb.from('lax_services').select('*').eq('active', true),
       sb.from('lax_settings').select('key,value'),
-      sb.from('lax_team').select('*').eq('active', true)
+      sb.from('lax_team').select('*').eq('active', true),
+      sb.from('lax_news').select('*').eq('active', true)
     ]);
+    if (r[6].error) r[6] = {data: []}; // novosti.sql još nije pokrenut
     var e = r.find(function (x) { return x.error; }); if (e) throw e.error;
     var settings = {}; (r[4].data || []).forEach(function (s) { settings[s.key] = s.value; });
     var products = ord(r[1].data);
     products.forEach(function (p) { p.lax_variants = ord((p.lax_variants || []).filter(function (v) { return v.active; })); });
-    return { categories: ord(r[0].data), products: products, delivery: ord(r[2].data), services: ord(r[3].data), settings: settings, team: ord(r[5].data) };
+    return { categories: ord(r[0].data), products: products, delivery: ord(r[2].data), services: ord(r[3].data), settings: settings, team: ord(r[5].data), news: r[6].data || [] };
   }
 
   async function load() {
@@ -51,7 +53,7 @@
     var r = await sb.from('lax_published').select('data,published_at').maybeSingle();
     if (r.error || !r.data || !r.data.data || !r.data.data.products) return live(sb); // još nije objavljeno
     var out = r.data.data;
-    ['categories', 'products', 'delivery', 'services', 'team'].forEach(function (k) { out[k] = out[k] || []; });
+    ['categories', 'products', 'delivery', 'services', 'team', 'news'].forEach(function (k) { out[k] = out[k] || []; });
     out.settings = out.settings || {};
     out.published_at = r.data.published_at;
     return out;

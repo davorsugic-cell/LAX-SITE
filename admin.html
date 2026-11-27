@@ -197,6 +197,11 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 .rpbar{display:inline-block;width:120px;height:8px;background:#f1ece6;border-radius:6px;overflow:hidden;vertical-align:middle}.rpbar i{display:block;height:100%;background:var(--gold2);border-radius:6px}.cktbl th.bc,.cktbl td.bc{width:130px}
 @media print{body.rpprint header,body.rpprint .pub,body.rpprint #tabs,body.rpprint section:not(#t-reports),body.rpprint #t-reports>.bar,body.rpprint .rptabs,body.rpprint .toast,body.rpprint .md{display:none!important}body.rpprint{background:#fff}body.rpprint .rphead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--gold2);padding-bottom:8px;margin-bottom:14px;font-family:var(--serif);font-size:24px}body.rpprint .rphead span{font-size:16px;color:var(--muted)}body.rpprint .rpblk{break-inside:avoid}body.rpprint .pm,body.rpprint .shopsw{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:16px;border-left:3px solid var(--gold2)}.shopsw.on{border-left-color:var(--green)}.shopsw span{color:var(--muted);font-size:13.5px;flex:1;min-width:240px}
 .cktbl{box-shadow:none}body.rpprint *{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.nwrow{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:16px;align-items:start}.nwrow.off{opacity:.6}
+.nwrow .th{width:150px;height:110px;border-radius:14px;cursor:pointer;background:#f4ede3;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;overflow:hidden}.nwrow .th img{width:100%;height:100%;object-fit:cover}
+.nwf{display:grid;gap:10px}.nwf .r2{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}.nwf .r2>div{flex:1 1 150px}.nwf .r2.acts{align-items:center}.nwf textarea{width:100%}
+.nst{font-size:11px;letter-spacing:.12em;text-transform:uppercase;border-radius:20px;padding:5px 11px;white-space:nowrap;margin-bottom:6px}.nst.on{background:#e0efe3;color:var(--green)}.nst.wait{background:#fbf1e0;color:var(--gold-dk)}.nst.off{background:#eee8e1;color:var(--muted)}
+@media (max-width:700px){.nwrow{grid-template-columns:1fr}.nwrow .th{width:100%;height:150px}}
 .cktbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}.cktbl th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:10px 12px;background:#faf6f0;border-bottom:1px solid var(--line)}.cktbl td{padding:9px 12px;border-bottom:1px solid #f1ece6}.cktbl td.r,.cktbl th.r{text-align:right;white-space:nowrap}.cktbl tr.zak td{color:var(--muted)}.cktbl tr.nd td{color:#b44;text-decoration:line-through}.cktbl tfoot td{font-weight:600;background:#faf6f0;border-bottom:0}.cktbl small{color:var(--muted)}
 .lgcard{grid-column:1/-1;background:#2b2420;color:#f7f1ea;border-radius:16px;padding:16px 18px;display:grid;gap:10px}.lgcard h4{font-family:var(--serif);font-weight:500;font-size:22px;margin:0}.lgcard .lgd{display:grid;grid-template-columns:90px 1fr;gap:4px 10px;font-size:14px}.lgcard .lgd span{color:var(--gold2);font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding-top:3px}.lgcard .lgd b{font-weight:500;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.03em;word-break:break-all}.lgcard ol{margin:0;padding-left:18px;font-size:13px;color:#cdbfae;line-height:1.55}.lgcard .lgacts{display:flex;gap:8px;flex-wrap:wrap}.lgcard .lgacts .btn{background:#fff;color:#2b2420;border-color:#fff;text-decoration:none}
 .strow{display:grid;grid-template-columns:1.6fr 100px auto auto;gap:10px;align-items:end;padding:14px 16px}
@@ -258,6 +263,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
       <button data-t="clients">Klijenti</button>
       <button data-t="check">Provjera</button>
       <button data-t="reports" class="adm">Izvještaji</button>
+      <button data-t="news" class="adm">Novosti</button>
       <button data-t="products" class="adm">Proizvodi</button>
       <button data-t="categories" class="adm">Kategorije</button>
       <button data-t="services" class="adm">Cjenovnik</button>
@@ -464,7 +470,7 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload();
 $('#tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['orders', 'appts', 'clients', 'check', 'reports', 'products', 'categories', 'services', 'team', 'delivery', 'staff'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
+  ['orders', 'appts', 'clients', 'check', 'reports', 'news', 'products', 'categories', 'services', 'team', 'delivery', 'staff'].forEach(t => $('#t-' + t).classList.toggle('hide', t !== b.dataset.t));
 };
 
 // ---------- narudžbe ----------
@@ -882,5 +888,6 @@ boot();
 </script>
 <script src="/admin-termini.js"></script>
 <script src="/admin-izvjestaji.js"></script>
+<script src="/admin-novosti.js"></script>
 </body>
 </html>
