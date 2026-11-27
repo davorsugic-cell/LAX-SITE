@@ -172,6 +172,10 @@ h2{font-family:var(--serif);font-weight:400;font-size:clamp(38px,4.6vw,56px);lin
 .dd.on>button{color:var(--gold-dk)}.dd.on>button svg{transform:rotate(180deg)}
 .ddp{position:absolute;right:-20px;top:calc(100% + 22px);width:340px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 50px rgba(43,36,32,.16);padding:20px;display:none;text-align:left;letter-spacing:0;text-transform:none}
 .dd.on .ddp{display:block}
+.ddp.ddm{left:-14px;right:auto;width:290px;padding:10px}
+nav.main .ddm a{display:block;padding:11px 14px;border-radius:12px;color:var(--ink);transition:background .15s;text-transform:none;letter-spacing:0;font-size:15px;border:0;width:auto}nav.main .ddm a::after{display:none}.ddm a[hidden]{display:none}
+.ddm a:hover,.ddm a.act{background:#faf4ea}
+.ddm a b{display:block;font-weight:500;font-size:15.5px;letter-spacing:.01em;font-family:var(--serif);font-size:20px;line-height:1.15}.ddm a small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;letter-spacing:0;text-transform:none}
 .ddp .row{display:flex;gap:12px;align-items:flex-start;padding:4px 0 14px;border-bottom:1px solid var(--line);margin-bottom:12px}
 .ddp .row svg{width:20px;height:20px;color:var(--gold);flex:none;margin-top:2px}
 .ddp .row b{display:block;font-weight:400;color:var(--ink);font-size:15px}
@@ -331,6 +335,7 @@ footer .made{display:block;margin-top:10px;font-size:10.5px;letter-spacing:.2em;
   body.menu-open .mbar{display:none}
   nav.main a{width:100%;padding:16px 0;border-bottom:1px solid var(--line);font-size:14px}
   nav.main a.cta{margin-top:16px;text-align:center;border:0}
+  .ddp.ddm{width:auto;padding:0 0 8px}nav.main .ddm a{padding:10px 14px;border-radius:10px}.ddm a b{font-family:var(--sans);font-size:14px;letter-spacing:.1em;text-transform:uppercase;font-weight:400}.ddm a small{display:none}
   .hero{padding:34px 0 30px}
   .hero-grid{grid-template-columns:1fr;gap:10px}
   .hero-txt{order:1}
@@ -425,10 +430,15 @@ nav.main a.lp i{position:absolute;top:-6px;right:-4px;font-style:normal;backgrou
     </a>
     <nav class="main" id="nav">
       <a href="#novosti" id="navNews" hidden>Novosti</a>
-      <a href="#usluge">Usluge</a>
-      <a href="#kosa">Ruska kosa</a>
-      <a href="#edukacije">Edukacije</a>
-      <a href="#tim" id="navTeam" hidden>Naš tim</a>
+      <div class="dd" id="ddS">
+        <button type="button" aria-expanded="false" aria-controls="ddpS">Salon <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 4.5 3 3 3-3"/></svg></button>
+        <div class="ddp ddm" id="ddpS">
+          <a href="#usluge"><b>Usluge i cjenovnik</b><small>Kosa, nokti, trepavice, tretmani…</small></a>
+          <a href="#kosa"><b>Ruska kosa</b><small>Nadogradnja i ruska kosa</small></a>
+          <a href="#edukacije"><b>Edukacije</b><small>Obuke za buduće profesionalke</small></a>
+          <a href="#tim" id="navTeam" hidden><b>Naš tim</b><small>Upoznajte nas</small></a>
+        </div>
+      </div>
       <a href="/shop">Shop</a>
       <a href="#vjernost" class="lp">♥ Bodovi <i>NOVO</i></a>
       <div class="dd" id="dd">
@@ -706,13 +716,14 @@ nav.main a.lp i{position:absolute;top:-6px;right:-4px;font-style:normal;backgrou
 document.getElementById('y').textContent=new Date().getFullYear();
 const hdr=document.querySelector('header'),b=document.getElementById('burger');
 b.addEventListener('click',()=>{const o=hdr.classList.toggle('open');b.setAttribute('aria-expanded',o);document.body.classList.toggle('menu-open',o)});
-document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{hdr.classList.remove('open');b.setAttribute('aria-expanded',false);document.body.classList.remove('menu-open');dd.classList.remove('on')}));
+document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{hdr.classList.remove('open');b.setAttribute('aria-expanded',false);document.body.classList.remove('menu-open');DDS.forEach(d=>d.classList.remove('on'))}));
 
-// --- Kontakt padajuci meni ---
-const dd=document.getElementById('dd'), ddb=dd.querySelector('button');
-ddb.addEventListener('click',e=>{e.stopPropagation();const o=dd.classList.toggle('on');ddb.setAttribute('aria-expanded',o)});
-document.addEventListener('click',e=>{if(!dd.contains(e.target)){dd.classList.remove('on');ddb.setAttribute('aria-expanded',false)}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')dd.classList.remove('on')});
+// --- Padajući meniji (Salon, Kontakt) ---
+const DDS=[...document.querySelectorAll('#nav .dd')];
+const ddClose=x=>DDS.forEach(d=>{if(d!==x){d.classList.remove('on');d.querySelector('button').setAttribute('aria-expanded',false)}});
+DDS.forEach(d=>{const bt=d.querySelector('button');bt.addEventListener('click',e=>{e.stopPropagation();ddClose(d);const o=d.classList.toggle('on');bt.setAttribute('aria-expanded',o)})});
+document.addEventListener('click',e=>{if(!DDS.some(d=>d.contains(e.target)))ddClose()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')ddClose()});
 
 // --- Radno vrijeme po danima (vrijeme u Banjoj Luci) ---
 const H={1:[12,19],2:[12,19],3:[12,19],4:[9,16],5:[9,16],6:[9,15],0:null};
@@ -744,7 +755,7 @@ function renderStatus(){
 
 // --- Aktivna stavka menija dok se skrola ---
 (function(){
-  const map=[['novosti','#nav a[href="#novosti"]'],['usluge','#nav a[href="#usluge"]'],['kosa','#nav a[href="#kosa"]'],['edukacije','#nav a[href="#edukacije"]'],['tim','#nav a[href="#tim"]'],['kontakt','#dd']];
+  const map=[['novosti','#navNews'],['usluge','#ddS'],['vjernost','#nav a.lp'],['kosa','#ddS'],['edukacije','#ddS'],['tim','#ddS'],['kontakt','#dd']];
   const els=map.map(([id,sel])=>[document.getElementById(id),document.querySelector(sel)]).filter(x=>x[0]&&x[1]);
   function spy(){
     const y=window.scrollY+window.innerHeight*0.35; let cur=null;
