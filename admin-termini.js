@@ -476,7 +476,7 @@
         <span class="lk">Nema prijavu.</span>
         <select class="role" data-s="${i}" data-k="role" title="Uloga"><option value="radnik">👤 Radnik/ca</option><option value="admin" ${(s._role ?? s.role) === 'admin' ? 'selected' : ''}>⭐ Admin</option></select>
         <input data-s="${i}" data-k="em" placeholder="email" value="${esc(s._em ?? sugEmail(s))}" autocomplete="off">
-        <input data-s="${i}" data-k="pw" placeholder="lozinka (min. 8)" value="${esc(s._pw || (s._pw = genPw()))}" autocomplete="new-password"><button class="btn" data-gen="${i}" title="Nova lozinka">↻</button>
+        <input data-s="${i}" data-k="pw" placeholder="PIN 4 broja" inputmode="numeric" maxlength="4" style="max-width:120px;letter-spacing:.3em;text-align:center" value="${esc(s._pw || (s._pw = genPw()))}" autocomplete="new-password"><button class="btn" data-gen="${i}" title="Novi PIN">↻</button>
         <button class="btn btn-gold" data-mk="${i}">🔑 Otvori šifru</button></div>`}
       ${s._done ? loginCard(s, i) : ''}
     </div>`).join('');
@@ -508,15 +508,15 @@
     return data || {};
   }
   const sugEmail = s => (s.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'dj').replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '') + '@lax.ba';
-  const loginMsg = (s, em, pw) => `Ćao ${s.name}! 👋\nTvoja prijava u LAX Studio admin:\n\n🔗 ${location.origin}/admin\n📧 Email: ${em}\n🔑 Lozinka: ${pw}\n👤 Uloga: ${s.role === 'admin' ? 'Admin (pun pristup)' : 'Radnik/ca'}\n\n1. Otvori link na telefonu ili računaru\n2. Upiši email i lozinku i klikni Prijava\n3. Na telefonu: Podijeli → "Dodaj na početni ekran" da ti bude kao aplikacija\n\nLozinku nemoj nikome slati. 💛`;
+  const loginMsg = (s, em, pw) => `Ćao ${s.name}! 👋\nTvoja prijava u LAX Studio admin:\n\n🔗 ${location.origin}/admin\n👤 Prijava: ${em.endsWith('@lax.ba') ? em.replace('@lax.ba', '') : em}\n🔑 PIN: ${pw}\n👤 Uloga: ${s.role === 'admin' ? 'Admin (pun pristup)' : 'Radnik/ca'}\n\n1. Otvori link na telefonu ili računaru\n2. Upiši ime i PIN i klikni Prijava\n3. Na telefonu: Podijeli → "Dodaj na početni ekran" da ti bude kao aplikacija\n\nPIN nemoj nikome slati. 💛`;
   function loginCard(s, i) {
     const t = encodeURIComponent(s._done.msg);
     return `<div class="lgcard"><h4>🔑 Podaci za prijavu — ${esc(s.name)}</h4>
-      <div class="lgd"><span>Uloga</span><b>${s.role === 'admin' ? '⭐ Admin — pun pristup' : '👤 Radnik/ca — Termini, Narudžbe, Klijenti, Provjera'}</b><span>Link</span><b>${esc(location.origin)}/admin</b><span>Email</span><b>${esc(s._done.em)}</b><span>Lozinka</span><b>${esc(s._done.pw)}</b></div>
-      <ol><li>Pošalji poruku (Viber / WhatsApp) ili kopiraj.</li><li>Otvori link i prijavi se.</li><li>Ako zaboravi lozinku, ovdje klikni „Nova šifra“.</li></ol>
+      <div class="lgd"><span>Uloga</span><b>${s.role === 'admin' ? '⭐ Admin — pun pristup' : '👤 Radnik/ca — Termini, Narudžbe, Klijenti, Provjera'}</b><span>Link</span><b>${esc(location.origin)}/admin</b><span>Prijava</span><b>${esc(s._done.em.endsWith('@lax.ba') ? s._done.em.replace('@lax.ba', '') : s._done.em)}</b><span>PIN</span><b style="font-size:20px;letter-spacing:.3em">${esc(s._done.pw)}</b></div>
+      <ol><li>Pošalji poruku (Viber / WhatsApp) ili kopiraj.</li><li>Otvori link i prijavi se.</li><li>Ako zaboravi PIN, ovdje klikni „Nova šifra“.</li></ol>
       <div class="lgacts"><a class="btn" href="viber://forward?text=${t}">Viber</a><a class="btn" href="https://wa.me/?text=${t}" target="_blank" rel="noopener">WhatsApp</a><button class="btn" data-cp="${i}">📋 Kopiraj poruku</button><button class="btn" data-hd="${i}">Zatvori</button></div></div>`;
   }
-  const genPw = () => { const a = 'abcdefghjkmnpqrstuvwxyz', d = '23456789', r = n => crypto.getRandomValues(new Uint8Array(1))[0] % n; let p = ''; for (let k = 0; k < 6; k++) p += a[r(a.length)]; p = p[0].toUpperCase() + p.slice(1); for (let k = 0; k < 3; k++) p += d[r(d.length)]; return p; };
+  const genPw = () => { let p; do { p = String(crypto.getRandomValues(new Uint16Array(1))[0] % 10000).padStart(4, '0'); } while (/^(\d)\1{3}$|^(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)$/.test(p)); return p; };
   $('#stList').addEventListener('click', async e => {
     const t = e.target, i = k => +t.closest('[' + k + ']').getAttribute(k);
     if (t.closest('[data-gen]')) { const s = staff[i('data-gen')]; s._pw = genPw(); const inp = t.closest('.slog').querySelector('[data-k="pw"]'); inp.value = s._pw; return; }
@@ -524,14 +524,14 @@
     if (t.closest('[data-hd]')) { staff[i('data-hd')]._done = null; drawStaffAdmin(); return; }
     if (t.closest('[data-mk]')) {
       const s = staff[i('data-mk')], em = (s._em ?? sugEmail(s)).trim(), pw = s._pw || '';
-      if (!em || pw.length < 8) return toast('Upiši email i lozinku od bar 8 znakova');
+      if (!em || !/^\d{4}$/.test(pw)) return toast('Upiši email i PIN od tačno 4 broja');
       const role = s._role ?? s.role ?? 'radnik';
       if (role !== (s.role || 'radnik')) {
         if (role === 'admin' && !await askConfirm('Admin prava?', `${s.name} će imati pristup svemu: proizvodi, cjenovnik, izvještaji, radnici, objava sajta.`, 'Da, admin', false)) return;
         const rr = await sb.rpc('lax_set_staff_role', {p_staff: s.id, p_role: role}); if (rr.error) return toast('Greška: ' + rr.error.message + (/function|schema/i.test(rr.error.message) ? ' — pokreni uloge.sql' : ''));
         s.role = role;
       }
-      t.disabled = true; const r = await staffUser({action: 'create', staff_id: s.id, email: em, password: pw}); t.disabled = false;
+      t.disabled = true; const r = await staffUser({action: 'create', staff_id: s.id, email: em, password: laxPin(pw)}); t.disabled = false;
       if (r.error) {
         if (r.exists && await askConfirm('Nalog već postoji', `Nalog s emailom ${em} već postoji. Želiš li ga povezati s radnikom/com ${s.name}? Lozinka ostaje stara.`, 'Poveži', false)) {
           const l = await sb.rpc('lax_link_staff', {p_staff: s.id, p_email: em}); if (l.error) return toast('Greška: ' + l.error.message);
@@ -544,8 +544,8 @@
     }
     if (t.closest('[data-np]')) {
       const s = staff[i('data-np')], pw = genPw();
-      if (!await askConfirm('Nova šifra?', `${s.name} dobija novu lozinku, a stara prestaje da radi.`, 'Napravi novu', false)) return;
-      const r = await staffUser({action: 'password', staff_id: s.id, password: pw}); if (r.error) return toast('Greška: ' + r.error);
+      if (!await askConfirm('Nova šifra?', `${s.name} dobija novi PIN, a stari prestaje da radi.`, 'Napravi novu', false)) return;
+      const r = await staffUser({action: 'password', staff_id: s.id, password: laxPin(pw)}); if (r.error) return toast('Greška: ' + r.error);
       s._done = {em: s.email, pw, msg: loginMsg(s, s.email, pw)}; drawStaffAdmin(); toast('Nova šifra napravljena'); return;
     }
     if (t.closest('[data-rm]')) {

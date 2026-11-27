@@ -234,8 +234,8 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
     <img src="/logo.png" alt="LAX">
     <h1>LAX Shop</h1>
     <p>Prijava za administraciju shopa</p>
-    <div class="f"><label class="l">Email</label><input name="email" type="email" autocomplete="username" required></div>
-    <div class="f"><label class="l">Lozinka</label><input name="password" type="password" autocomplete="current-password" required></div>
+    <div class="f"><label class="l">Email ili ime</label><input name="email" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="npr. marija ili marija@lax.ba" required></div>
+    <div class="f"><label class="l">Lozinka ili PIN</label><input name="password" type="password" autocomplete="current-password" required></div>
     <button class="btn btn-gold" style="width:100%;padding:13px">Prijavi se</button>
     <div class="msg" id="loginMsg"></div>
   </form>
@@ -447,11 +447,15 @@ async function boot() {
   if (who.admin) { pubStatus(); loadCategories().then(loadProducts); loadServices(); loadTeam(); loadDelivery(); }
   window.LAX_WHO = who; if (window.laxStaffInit) laxStaffInit(who);
 }
+// PIN od 4 broja za radnike: Supabase traži dužu lozinku, pa se PIN interno proširi (isto pri pravljenju i prijavi)
+const laxPin = pw => /^\d{4}$/.test(pw) ? 'LAX#' + pw + '#bl' : pw;
 function showLogin(msg) { $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); $('#loginMsg').textContent = msg || ''; }
 $('#loginForm').onsubmit = async e => {
   e.preventDefault(); const f = new FormData(e.target);
   $('#loginMsg').textContent = '';
-  const {error} = await sb.auth.signInWithPassword({email: f.get('email'), password: f.get('password')});
+  let em = String(f.get('email') || '').trim().toLowerCase(), pw = String(f.get('password') || '');
+  if (!em.includes('@')) em = em.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'dj').replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '') + '@lax.ba'; // radnici se prijavljuju samo imenom
+  const {error} = await sb.auth.signInWithPassword({email: em, password: laxPin(pw)});
   if (error) return $('#loginMsg').textContent = 'Pogrešan email ili lozinka.';
   boot();
 };
