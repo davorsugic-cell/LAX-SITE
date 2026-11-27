@@ -471,8 +471,10 @@
       <button class="btn btn-gold" data-ss="${i}">Sačuvaj</button>
       ${!s.id ? '<div class="slog"><span class="lk">Prvo sačuvaj radnika/cu, pa otvori šifru.</span></div>' : s.user_id ? `<div class="slog ok">
         <span class="lk">✓ Ima prijavu: <b>${esc(s.email || '')}</b></span>
+        <select class="role ${s.role === 'admin' ? 'adm' : ''}" data-role="${i}" title="Uloga"><option value="radnik">👤 Radnik/ca</option><option value="admin" ${s.role === 'admin' ? 'selected' : ''}>⭐ Admin</option></select>
         <button class="btn" data-np="${i}">🔑 Nova šifra</button><button class="btn btn-red" data-rm="${i}">Ukloni prijavu</button></div>` : `<div class="slog">
         <span class="lk">Nema prijavu.</span>
+        <select class="role" data-s="${i}" data-k="role" title="Uloga"><option value="radnik">👤 Radnik/ca</option><option value="admin" ${(s._role ?? s.role) === 'admin' ? 'selected' : ''}>⭐ Admin</option></select>
         <input data-s="${i}" data-k="em" placeholder="email" value="${esc(s._em ?? sugEmail(s))}" autocomplete="off">
         <input data-s="${i}" data-k="pw" placeholder="lozinka (min. 8)" value="${esc(s._pw || (s._pw = genPw()))}" autocomplete="new-password"><button class="btn" data-gen="${i}" title="Nova lozinka">↻</button>
         <button class="btn btn-gold" data-mk="${i}">🔑 Otvori šifru</button></div>`}
@@ -485,6 +487,16 @@
       <button class="btn btn-gold" data-rs="${i}">Sačuvaj</button><button class="btn btn-red" data-rx="${i}">×</button></div>`).join('');
   }
   $('#stList').addEventListener('input', e => { const t = e.target; if (t.dataset.s == null) return; const s = staff[+t.dataset.s], k = t.dataset.k; s[(k === 'em' || k === 'pw') ? '_' + k : '_' + k] = t.type === 'checkbox' ? t.checked : t.value; });
+  $('#stList').addEventListener('change', async e => {
+    const t = e.target.closest('[data-role]'); if (!t) return;
+    const s = staff[+t.dataset.role], role = t.value, old = s.role || 'radnik';
+    const ok = await askConfirm(role === 'admin' ? 'Dati admin prava?' : 'Ukinuti admin prava?',
+      role === 'admin' ? `${s.name} će odmah imati pristup svemu: proizvodi, cjenovnik, izvještaji, radnici, objava sajta.` : `${s.name} će vidjeti samo Termine, Narudžbe, Klijente i Provjeru.`, role === 'admin' ? 'Da, admin' : 'Da, radnik/ca', false);
+    if (!ok) { t.value = old; return; }
+    const r = await sb.rpc('lax_set_staff_role', {p_staff: s.id, p_role: role});
+    if (r.error) { t.value = old; return toast('Greška: ' + r.error.message + (/function|schema/i.test(r.error.message) ? ' — pokreni uloge.sql' : '')); }
+    s.role = role; drawStaffAdmin(); toast(role === 'admin' ? s.name + ' je sada admin (važi od sljedeće prijave)' : s.name + ' je sada radnik/ca');
+  });
   async function staffUser(body) {
     const {data, error} = await sb.functions.invoke('lax-staff-user', {body});
     if (error) {
@@ -496,11 +508,11 @@
     return data || {};
   }
   const sugEmail = s => (s.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'dj').replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '') + '@lax.ba';
-  const loginMsg = (s, em, pw) => `Ćao ${s.name}! 👋\nTvoja prijava u LAX Studio admin:\n\n🔗 ${location.origin}/admin\n📧 Email: ${em}\n🔑 Lozinka: ${pw}\n\n1. Otvori link na telefonu ili računaru\n2. Upiši email i lozinku i klikni Prijava\n3. Na telefonu: Podijeli → "Dodaj na početni ekran" da ti bude kao aplikacija\n\nLozinku nemoj nikome slati. 💛`;
+  const loginMsg = (s, em, pw) => `Ćao ${s.name}! 👋\nTvoja prijava u LAX Studio admin:\n\n🔗 ${location.origin}/admin\n📧 Email: ${em}\n🔑 Lozinka: ${pw}\n👤 Uloga: ${s.role === 'admin' ? 'Admin (pun pristup)' : 'Radnik/ca'}\n\n1. Otvori link na telefonu ili računaru\n2. Upiši email i lozinku i klikni Prijava\n3. Na telefonu: Podijeli → "Dodaj na početni ekran" da ti bude kao aplikacija\n\nLozinku nemoj nikome slati. 💛`;
   function loginCard(s, i) {
     const t = encodeURIComponent(s._done.msg);
     return `<div class="lgcard"><h4>🔑 Podaci za prijavu — ${esc(s.name)}</h4>
-      <div class="lgd"><span>Link</span><b>${esc(location.origin)}/admin</b><span>Email</span><b>${esc(s._done.em)}</b><span>Lozinka</span><b>${esc(s._done.pw)}</b></div>
+      <div class="lgd"><span>Uloga</span><b>${s.role === 'admin' ? '⭐ Admin — pun pristup' : '👤 Radnik/ca — Termini, Narudžbe, Klijenti, Provjera'}</b><span>Link</span><b>${esc(location.origin)}/admin</b><span>Email</span><b>${esc(s._done.em)}</b><span>Lozinka</span><b>${esc(s._done.pw)}</b></div>
       <ol><li>Pošalji poruku (Viber / WhatsApp) ili kopiraj.</li><li>Otvori link i prijavi se.</li><li>Ako zaboravi lozinku, ovdje klikni „Nova šifra“.</li></ol>
       <div class="lgacts"><a class="btn" href="viber://forward?text=${t}">Viber</a><a class="btn" href="https://wa.me/?text=${t}" target="_blank" rel="noopener">WhatsApp</a><button class="btn" data-cp="${i}">📋 Kopiraj poruku</button><button class="btn" data-hd="${i}">Zatvori</button></div></div>`;
   }
@@ -513,6 +525,12 @@
     if (t.closest('[data-mk]')) {
       const s = staff[i('data-mk')], em = (s._em ?? sugEmail(s)).trim(), pw = s._pw || '';
       if (!em || pw.length < 8) return toast('Upiši email i lozinku od bar 8 znakova');
+      const role = s._role ?? s.role ?? 'radnik';
+      if (role !== (s.role || 'radnik')) {
+        if (role === 'admin' && !await askConfirm('Admin prava?', `${s.name} će imati pristup svemu: proizvodi, cjenovnik, izvještaji, radnici, objava sajta.`, 'Da, admin', false)) return;
+        const rr = await sb.rpc('lax_set_staff_role', {p_staff: s.id, p_role: role}); if (rr.error) return toast('Greška: ' + rr.error.message + (/function|schema/i.test(rr.error.message) ? ' — pokreni uloge.sql' : ''));
+        s.role = role;
+      }
       t.disabled = true; const r = await staffUser({action: 'create', staff_id: s.id, email: em, password: pw}); t.disabled = false;
       if (r.error) {
         if (r.exists && await askConfirm('Nalog već postoji', `Nalog s emailom ${em} već postoji. Želiš li ga povezati s radnikom/com ${s.name}? Lozinka ostaje stara.`, 'Poveži', false)) {

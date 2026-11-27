@@ -201,6 +201,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 .lgcard{grid-column:1/-1;background:#2b2420;color:#f7f1ea;border-radius:16px;padding:16px 18px;display:grid;gap:10px}.lgcard h4{font-family:var(--serif);font-weight:500;font-size:22px;margin:0}.lgcard .lgd{display:grid;grid-template-columns:90px 1fr;gap:4px 10px;font-size:14px}.lgcard .lgd span{color:var(--gold2);font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding-top:3px}.lgcard .lgd b{font-weight:500;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.03em;word-break:break-all}.lgcard ol{margin:0;padding-left:18px;font-size:13px;color:#cdbfae;line-height:1.55}.lgcard .lgacts{display:flex;gap:8px;flex-wrap:wrap}.lgcard .lgacts .btn{background:#fff;color:#2b2420;border-color:#fff;text-decoration:none}
 .strow{display:grid;grid-template-columns:1.6fr 100px auto auto;gap:10px;align-items:end;padding:14px 16px}
 .strow .slog{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px dashed var(--line);padding-top:12px;margin-top:2px}.strow .slog input{max-width:230px}.strow .slog.ok .lk b{color:var(--green);font-weight:500}
+.strow select.role{width:auto;padding:8px 10px;border-radius:10px}.strow select.role.adm{border-color:var(--gold2);background:#fbf1e0;color:var(--gold-dk);font-weight:500}
 .strow .slog.done{background:#eef5ef;border:1px solid #cfe3d4;border-radius:12px;padding:10px 12px;font-size:13px;color:var(--green)}.strow .slog.done code{white-space:pre;font-size:12px;color:var(--ink);background:#fff;border-radius:8px;padding:8px 10px;flex:1}.strow .lk{font-size:12px;color:var(--muted);padding-bottom:10px}.strow .ck{padding-bottom:10px}
 .rwrow{display:grid;grid-template-columns:2fr 110px auto auto 44px;gap:8px;align-items:center;padding:12px 14px}
 
@@ -298,7 +299,7 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 
     <section id="t-staff" class="hide">
       <div class="bar"><h2>Radnici</h2><button class="btn btn-gold" id="stNew">+ Novi radnik/ca</button></div>
-      <p class="hint">Radnik/ca vidi Termine, Narudžbe, Klijente i Provjeru. Za prijavu klikni <b>🔑 Otvori šifru</b> — email i lozinka su već predloženi, a nakon toga dobiješ gotovu poruku s podacima za prijavu koju mu/joj pošalješ na Viber ili WhatsApp.</p>
+      <p class="hint">Uz šifru biraš ulogu: <b>👤 Radnik/ca</b> vidi Termine, Narudžbe, Klijente i Provjeru, a <b>⭐ Admin</b> dobija automatski sva prava (kao ti). Za prijavu klikni <b>🔑 Otvori šifru</b> — email i lozinka su već predloženi, a nakon toga dobiješ gotovu poruku s podacima za prijavu koju mu/joj pošalješ na Viber ili WhatsApp.</p>
       <div id="stList"></div>
       <div class="bar" style="margin-top:34px"><h2>Nagrade programa vjernosti</h2><button class="btn btn-gold" id="rwNew">+ Nova nagrada</button></div>
       <div id="rwList"></div>
