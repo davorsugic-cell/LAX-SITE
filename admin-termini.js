@@ -359,11 +359,11 @@
     await sb.from('lax_appointments').update({extras, note: $('#apmNote').value.trim() || null}).eq('id', cur.id);
     const {data, error} = await sb.rpc('lax_set_status', {p_id: cur.id, p_status: b.dataset.st, p_price: pr});
     if (error) return toast('Greška: ' + error.message);
-    toast(b.dataset.st === 'zavrsen' ? (data.points ? `Završeno · +${data.points} bodova${data.double ? ' (dopuna ×2)' : ''}` : 'Završeno') : 'Status: ' + STN[b.dataset.st]);
+    toast(b.dataset.st === 'zavrsen' ? (data.points ? `Završeno · +${data.points} bodova${data.double ? ' (dopuna ×' + String(+(data.mult || 2)).replace('.', ',') + ')' : ''}` : 'Završeno') : 'Status: ' + STN[b.dataset.st]);
     const done = cur; closeAp(); await reloadClients(); loadWeek();
     const c = clients.find(x => x.id === done.client_id);
     if (b.dataset.st === 'zavrsen' && data.points > 0 && c && c.phone)
-      offerSend('Pošalji bodove klijentu', c, `Hvala ${first(c.name)}! 💛 Za današnji tretman dobijaš +${data.points} bodova${data.double ? ' (dopuna na vrijeme ×2)' : ''}. Sada imaš ${c.points} bodova.\n\nSvoje bodove i nagrade vidiš ovdje: ${cardUrl(c)}`, true);
+      offerSend('Pošalji bodove klijentu', c, `Hvala ${first(c.name)}! 💛 Za današnji tretman dobijaš +${data.points} bodova${data.double ? ' (dopuna na vrijeme ×' + String(+(data.mult || 2)).replace('.', ',') + ')' : ''}. Sada imaš ${c.points} bodova.\n\nSvoje bodove i nagrade vidiš ovdje: ${cardUrl(c)}`, true);
   });
   $('#apmDel').onclick = async () => {
     if (!cur.id) return;
@@ -419,7 +419,7 @@
     if (!row.name) return toast('Upiši ime');
     const r = cc.id ? await sb.from('lax_clients').update(row).eq('id', cc.id).select().single() : await sb.from('lax_clients').insert(row).select().single();
     if (r.error) return toast('Greška: ' + r.error.message);
-    toast(cc.id ? 'Klijent sačuvan' : 'Klijent dodan (+20 bodova)');
+    toast(cc.id ? 'Klijent sačuvan' : 'Klijent dodan (+ bodovi dobrodošlice)');
     const wasNew = !cc.id;
     await reloadClients(); const c = clients.find(x => x.id === r.data.id); openCl(c); drawDay();
     if (wasNew && c && c.phone) offerSend('Pošalji link dobrodošlice', c, welcomeMsg(c), true);

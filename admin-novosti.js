@@ -135,4 +135,75 @@
     finally { b.disabled = false; }
   };
   document.getElementById('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.t === 'news') load(); });
+
+  // ---------- pravila programa vjernosti (kućice na početnoj) ----------
+  const LS_DEF = [{v: '1 KM', t: '= 1 bod za svaku uslugu'}, {v: '×2', t: 'duplo bodova za dopunu na vrijeme'}, {v: '+20', t: 'bodova odmah za dobrodošlicu'}];
+  let ls = [];
+  async function loadLs() {
+    const {data} = await sb.from('lax_settings').select('value').eq('key', 'loyalty_steps').maybeSingle();
+    ls = Array.isArray(data && data.value) ? data.value.map(x => ({...x})) : LS_DEF.map(x => ({...x})); drawLs();
+  }
+  function drawLs() {
+    $('#lsList').innerHTML = ls.map((x, i) => `<div class="card lsrow">
+      <div><label class="l">Veliko</label><input class="big" data-ls="${i}" data-k="v" value="${esc(x.v || '')}" maxlength="10" placeholder="npr. 1 KM"></div>
+      <div><label class="l">Opis ispod</label><input data-ls="${i}" data-k="t" value="${esc(x.t || '')}" maxlength="60" placeholder="npr. = 1 bod za svaku uslugu"></div>
+      <button class="btn btn-red" data-lsx="${i}" title="Ukloni">×</button></div>`).join('') ||
+      '<div class="card" style="color:var(--muted);text-align:center">Nema kućica — na početnoj se neće prikazati.</div>';
+    $('#lsNew').disabled = ls.length >= 4;
+  }
+  $('#lsList').addEventListener('input', e => { const t = e.target; if (t.dataset.ls == null) return; ls[+t.dataset.ls][t.dataset.k] = t.value; });
+  $('#lsList').addEventListener('click', e => { const x = e.target.closest('[data-lsx]'); if (!x) return; ls.splice(+x.dataset.lsx, 1); drawLs(); });
+  $('#lsNew').onclick = () => { if (ls.length >= 4) return; ls.push({v: '', t: ''}); drawLs(); const f = document.querySelectorAll('#lsList input.big'); f[f.length - 1].focus(); };
+  $('#lsSave').onclick = async () => {
+    const val = ls.map(x => ({v: String(x.v || '').trim(), t: String(x.t || '').trim()})).filter(x => x.v || x.t);
+    const {error} = await sb.from('lax_settings').upsert({key: 'loyalty_steps', value: val});
+    if (error) return toast('Greška: ' + error.message);
+    ls = val; drawLs(); toast('Sačuvano — na sajtu nakon „Objavi izmjene“'); if (window.pubStatus) pubStatus();
+  };
+  // ---------- PRAVA pravila bodovanja (lax_loyalty) ----------
+  const CATS = {kosa: 'Kosa i nadogradnja', nokti: 'Nokti', trepavice: 'Trepavice i obrve', trajna: 'Trajna šminka', lice: 'Tretmani lica', tijelo: 'Tretmani tijela', sminkanje: 'Šminkanje', edukacije: 'Edukacije'};
+  let LR = null;
+  const num = v => String(+v).replace('.', ',');
+  async function loadLr() {
+    const {data, error} = await sb.from('lax_loyalty').select('*').maybeSingle();
+    if (error || !data) { $('#lrBox').innerHTML = '<div>Pravila nisu dostupna' + (error ? ': ' + esc(error.message) : '') + ' — pokreni <b>bodovanje.sql</b>.</div>'; LR = null; return; }
+    LR = data; drawLr();
+  }
+  function drawLr() {
+    const L = LR, cks = (k, sel) => Object.entries(CATS).map(([c, n]) => `<label><input type="checkbox" data-lc="${k}" value="${c}" ${sel.includes(c) ? 'checked' : ''}> ${n}</label>`).join('');
+    $('#lrBox').innerHTML = `
+      <div><label class="l">Koliko KM za 1 bod</label><input type="number" min="0.1" step="0.5" id="lrKm" value="${L.km_per_point}"><small>1 = svaka 1 KM donosi 1 bod; 2 = svake 2 KM jedan bod</small></div>
+      <div><label class="l">Bodovi dobrodošlice</label><input type="number" min="0" step="1" id="lrW" value="${L.welcome_points}"><small>Dobija svaki novi klijent (0 = bez)</small></div>
+      <div><label class="l">Rok važenja bodova (mjeseci)</label><input type="number" min="1" max="120" step="1" id="lrV" value="${L.valid_months}"><small>Od zadnje posjete; svaka posjeta produžava rok</small></div>
+      <div><label class="l">Dopuna na vrijeme — množilac</label><input type="number" min="1" max="10" step="0.5" id="lrM" value="${L.double_mult}"><small>2 = duplo bodova; 1 = isključeno</small></div>
+      <div><label class="l">„Na vrijeme“ = u roku od (dana)</label><input type="number" min="1" max="365" step="1" id="lrD" value="${L.double_days}"><small>Od prethodnog završenog termina iste vrste</small></div>
+      <div class="full"><label class="l">Dopuna važi za</label><div class="cks">${cks('dbl', L.double_categories || [])}</div></div>
+      <div class="full"><label class="l">Bez bodova za</label><div class="cks">${cks('exc', L.excluded_categories || [])}</div></div>
+      <div class="act"><span id="lrTxt" style="color:var(--muted);font-size:13px;flex:1">${esc(lrSummary(L))}</span><button class="btn btn-gold" id="lrSave">Sačuvaj pravila bodovanja</button></div>`;
+  }
+  function lrSummary(L) {
+    return `Sada: ${+L.km_per_point === 1 ? '1 KM = 1 bod' : num(L.km_per_point) + ' KM = 1 bod'} · dobrodošlica +${L.welcome_points} · ` +
+      (+L.double_mult > 1 ? `dopuna ×${num(L.double_mult)} u roku ${L.double_days} dana` : 'bez bonusa za dopunu') + ` · bodovi važe ${L.valid_months} mj.`;
+  }
+  $('#lrBox').addEventListener('click', async e => {
+    if (!e.target.closest('#lrSave')) return;
+    const v = id => +$(id).value, ck = k => [...document.querySelectorAll(`[data-lc="${k}"]:checked`)].map(x => x.value);
+    const row = {km_per_point: v('#lrKm'), welcome_points: Math.round(v('#lrW')), valid_months: Math.round(v('#lrV')), double_mult: v('#lrM'), double_days: Math.round(v('#lrD')),
+      double_categories: ck('dbl'), excluded_categories: ck('exc'), updated_at: new Date().toISOString()};
+    if (!(row.km_per_point > 0)) return toast('KM za 1 bod mora biti veće od 0');
+    if (row.welcome_points < 0 || row.double_mult < 1 || row.double_days < 1 || row.valid_months < 1) return toast('Provjeri unesene brojeve');
+    if (!await askConfirm('Promijeniti pravila bodovanja?', lrSummary(row) + '. Važi odmah za nove završene termine i nove klijente; već dodijeljeni bodovi ostaju.', 'Sačuvaj', false)) return;
+    const {error} = await sb.from('lax_loyalty').update(row).eq('id', true);
+    if (error) return toast('Greška: ' + error.message);
+    LR = {...LR, ...row}; drawLr(); toast('Pravila bodovanja sačuvana');
+  });
+  $('#lsFill').onclick = () => {
+    if (!LR) return toast('Pravila bodovanja nisu učitana');
+    const L = LR, k = +L.km_per_point;
+    ls = [{v: k === 1 ? '1 KM' : num(k) + ' KM', t: '= 1 bod za svaku uslugu'}];
+    if (+L.double_mult > 1) ls.push({v: '×' + num(L.double_mult), t: `bodova za dopunu u roku ${L.double_days} dana`});
+    if (+L.welcome_points > 0) ls.push({v: '+' + L.welcome_points, t: 'bodova odmah za dobrodošlicu'});
+    drawLs(); toast('Kućice popunjene — klikni „Sačuvaj kućice“, pa Objavi izmjene');
+  };
+  document.getElementById('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.t === 'staff') { loadLs(); loadLr(); } });
 })();

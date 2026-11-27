@@ -61,6 +61,9 @@ a{color:inherit}
   if (error || !data) { if (!fromUrl) { try { localStorage.removeItem('lax_card'); } catch (e) {} return none(); } return bad(); }
   try { localStorage.setItem('lax_card', tok); } catch (e) {}
   if (fromUrl) history.replaceState(null, '', '/bodovi');
+  const howTxt = r => { r = r || {}; const k = +(r.km_per_point || 1), m = +(r.double_mult || 2), f = x => String(x).replace('.', ',');
+    return (k === 1 ? 'Za svaku potrošenu 1 KM dobijaš 1 bod.' : `Za svakih ${f(k)} KM dobijaš 1 bod.`) +
+      (m > 1 ? (m === 2 ? ' Dopuna na vrijeme donosi duplo bodova.' : ` Dopuna na vrijeme donosi ×${f(m)} bodova.`) : ''); };
   const p = Math.max(0, data.points), R = data.rewards || [];
   const nx = R.find(r => r.points > p), prev = [...R].reverse().find(r => r.points <= p);
   const pct = nx ? Math.round(p / nx.points * 100) : 100;
@@ -74,7 +77,7 @@ a{color:inherit}
       ${vu ? `<div class="valid">Bodovi važe do ${vu}. Svaka posjeta produžava rok.</div>` : ''}
     </div>
     <div class="rw"><h2>Nagrade</h2>${R.map(r => `<div class="r ${r.points <= p ? 'ok' : ''}"><span class="n" style="color:inherit;font-size:15px;margin:0">${esc(r.name)}</span><span>${r.points} bodova</span></div>`).join('')}</div>
-    <p class="how">Za svaku potrošenu 1 KM dobijaš 1 bod. Dopuna na vrijeme donosi duplo bodova. Nagradu iskoristiš u salonu, samo nam reci prije tretmana.</p>
+    <p class="how">${howTxt(data.rules)} Nagradu iskoristiš u salonu, samo nam reci prije tretmana.</p>
     <a class="btn" href="#" data-book>Zakažite termin</a>`;
 })();
 </script>

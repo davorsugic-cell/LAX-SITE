@@ -200,6 +200,9 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
 .crf{position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;border-radius:14px;background:#2b2420;cursor:grab;touch-action:none;user-select:none}.crf.dr{cursor:grabbing}.crf img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0;pointer-events:none}
 .crg{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.35) 1px,transparent 1px);background-size:33.333% 33.333%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.7)}
 .crz{display:flex;align-items:center;gap:12px;margin-top:14px;color:var(--muted);font-size:20px}.crz input{flex:1;accent-color:var(--gold)}
+.lrules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px 20px;padding:20px}.lrules .full{grid-column:1/-1}.lrules .cks{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px}.lrules .cks label{display:flex;gap:6px;align-items:center;font-size:14px}.lrules small{display:block;color:var(--muted);font-size:12px;margin-top:4px}.lrules .act{grid-column:1/-1;display:flex;justify-content:flex-end;gap:10px;align-items:center}
+.lsrow{display:grid;grid-template-columns:160px 1fr auto;gap:12px;align-items:end;padding:14px 16px;margin-bottom:10px}.lsrow .big{font-family:var(--serif);font-size:24px}
+@media (max-width:600px){.lsrow{grid-template-columns:1fr auto}.lsrow>div:nth-child(2){grid-column:1/-1;grid-row:2}}
 .nwrow{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:16px;align-items:start}.nwrow.off{opacity:.6}
 .nwrow .th{width:150px;height:110px;border-radius:14px;cursor:pointer;background:#f4ede3;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;overflow:hidden}.nwrow .th img{width:100%;height:100%;object-fit:cover}
 .nwf{display:grid;gap:10px}.nwf .r2{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}.nwf .r2>div{flex:1 1 150px}.nwf .r2.acts{align-items:center}.nwf textarea{width:100%}
@@ -312,6 +315,14 @@ nav.tabs button.hasnew{border-color:#e9a9a9;background:#fdf0ef;color:#a12828}
       <div id="stList"></div>
       <div class="bar" style="margin-top:34px"><h2>Nagrade programa vjernosti</h2><button class="btn btn-gold" id="rwNew">+ Nova nagrada</button></div>
       <div id="rwList"></div>
+      <div class="bar" style="margin-top:34px"><h2>Pravila bodovanja</h2></div>
+      <p class="hint">Kako se stvarno računaju bodovi. Promjena važi odmah, za sve termine koje od sada označiš kao „Završen“ i za nove klijente — već dodijeljeni bodovi se ne mijenjaju.</p>
+      <div class="card lrules" id="lrBox"><div style="color:var(--muted)">Učitavanje…</div></div>
+      <div class="bar" style="margin-top:34px"><h2>Pravila na početnoj</h2><button class="btn" id="lsNew">+ Dodaj kućicu</button></div>
+      <p class="hint">Kućice iznad nagrada u sekciji „Program vjernosti“ na početnoj (npr. „1 KM“ — „= 1 bod za svaku uslugu“). Najviše 4. Na sajtu se vidi nakon <b>Objavi izmjene</b>.
+        Ovo je samo tekst za klijente — sam obračun bodova se ovim ne mijenja.</p>
+      <div id="lsList"></div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px;flex-wrap:wrap"><button class="btn" id="lsFill">↻ Popuni iz pravila bodovanja</button><button class="btn btn-gold" id="lsSave">Sačuvaj kućice</button></div>
     </section>
 
     <section id="t-products" class="hide">

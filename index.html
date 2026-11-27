@@ -569,17 +569,12 @@ nav.main a.lp i{position:absolute;top:-6px;right:-4px;font-style:normal;backgrou
         <div class="eyebrow">Program vjernosti · novo</div>
         <h2>Vaša ljepota <em>se isplati</em></h2>
         <p>Za svaki tretman u LAX Studiju skupljate bodove, a bodove mijenjate za tretmane na poklon.</p>
-        <div class="steps">
+        <div class="steps" id="lSteps">
           <div class="stp"><b>1 KM</b><span>= 1 bod za svaku uslugu</span></div>
           <div class="stp"><b>×2</b><span>duplo bodova za dopunu na vrijeme</span></div>
           <div class="stp"><b>+20</b><span>bodova odmah za dobrodošlicu</span></div>
         </div>
-        <div class="rw">
-          <span><b>150</b>French ili hidro jelly maska</span>
-          <span><b>300</b>Oblikovanje + farbanje obrva</span>
-          <span><b>500</b>Lash lift ili masaža 30 min</span>
-          <span><b>800</b>Tretman lica</span>
-        </div>
+        <div class="rw" id="rwList" hidden></div>
         <div class="lbtns">
           <a href="tel:+38766864406" class="btn btn-gold" data-book>Zakažite i počnite skupljati</a>
           <a href="/bodovi" class="btn btn-line lmy">♥ Provjerite svoje bodove</a>
@@ -590,8 +585,8 @@ nav.main a.lp i{position:absolute;top:-6px;right:-4px;font-style:normal;backgrou
         <div class="hd"><img src="/logo.png" alt=""><span><b>LAX Studio</b><small>Program vjernosti</small></span></div>
         <div class="hi">Ćao, Sanja</div>
         <div class="pts">340<small>bodova</small></div>
-        <div class="bar"><i></i></div>
-        <div class="nx">Do nagrade <b>Lash lift</b> fali ti još <b>160</b> bodova.</div>
+        <div class="bar"><i id="lcBar"></i></div>
+        <div class="nx" id="lcNx">Za svaki tretman skupljaš bodove.</div>
       </div>
     </div>
   </div>
@@ -841,6 +836,30 @@ async function loadNews(){
   document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
 }
 window.addEventListener('DOMContentLoaded',loadNews);
+// --- Nagrade programa vjernosti (aktivne iz admina → Radnici → Nagrade) ---
+async function loadRewards(){
+  const sb=window.laxClient&&laxClient(); if(!sb) return;
+  const {data,error}=await sb.from('lax_rewards').select('name,points').eq('active',true).order('points');
+  if(error||!data||!data.length) return;
+  const el=document.getElementById('rwList');
+  el.innerHTML=data.map(r=>`<span><b>${escH(r.points)}</b>${escH(r.name)}</span>`).join(''); el.hidden=false;
+  const P=340, nx=data.find(r=>r.points>P), pv=[...data].reverse().find(r=>r.points<=P);
+  const lo=pv?pv.points:0, hi=nx?nx.points:P;
+  document.getElementById('lcBar').style.width=(nx?Math.round((P-lo)/(hi-lo)*100):100)+'%';
+  document.getElementById('lcNx').innerHTML=nx?`Do nagrade <b>${escH(nx.name.split(/ ili | \+ |,/)[0])}</b> fali ti još <b>${nx.points-P}</b> bodova.`:'Imaš dovoljno bodova za nagradu! 🎁';
+}
+window.addEventListener('DOMContentLoaded',loadRewards);
+// --- Pravila programa vjernosti (kućice; Admin → Radnici → Pravila na početnoj, kroz objavu) ---
+async function loadSteps(){
+  if(!window.laxData) return;
+  let st; try{ st=(await laxData()).settings.loyalty_steps; }catch(e){ return; }
+  if(!Array.isArray(st)) return; // nije podešeno — ostaje zadani tekst
+  const el=document.getElementById('lSteps');
+  if(!st.length){ el.hidden=true; return; }
+  el.style.gridTemplateColumns='repeat('+st.length+',1fr)';
+  el.innerHTML=st.map(x=>`<div class="stp"><b>${escH(x.v)}</b><span>${escH(x.t)}</span></div>`).join('');
+}
+window.addEventListener('DOMContentLoaded',loadSteps);
 document.querySelectorAll('.svc[data-cat]').forEach(c=>c.addEventListener('click',e=>{e.preventDefault();openPl(c.dataset.cat)}));
 document.getElementById('plX').onclick=closePl; plOv.onclick=closePl;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePl()});
